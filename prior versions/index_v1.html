@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nourish">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Nourish — Food Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0d1117; --surface: #0f1520; --border: #1a2535;
+    --border2: #252d3d; --text: #e0d8cc; --muted: #404858;
+    --dim: #2a3545; --green: #7ecba1; --green-bg: #162a20;
+    --green-border: #253828; --blue: #7eb8cb; --gold: #cbb87e; --pink: #cb7ea8;
+    --red: #e07070; --safe-top: env(safe-area-inset-top, 0px);
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif; overflow-x: hidden; }
+  input, button { font-family: inherit; }
+  input:focus { outline: 2px solid var(--green); outline-offset: -1px; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* SYNC STATUS */
+  #sync-bar { background: #0a1520; border-bottom: 1px solid var(--border); padding: 5px 16px; text-align: center; font-size: 11px; font-family: monospace; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+  .sync-dot.online { background: var(--green); }
+  .sync-dot.saving { background: var(--gold); animation: pulse 0.8s infinite; }
+  .sync-dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* HEADER */
+  #header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: calc(var(--safe-top) + 14px) 16px 14px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-row { display: flex; justify-content: space-between; align-items: center; }
+  .app-title { font-size: 20px; font-weight: bold; color: #f0e8d8; letter-spacing: -0.5px; }
+  .app-date { font-size: 11px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+  .cal-number { font-size: 22px; font-weight: bold; font-family: monospace; color: var(--green); }
+  .cal-number.over { color: var(--red); }
+  .cal-label { font-size: 10px; color: var(--muted); font-family: monospace; }
+  .gear-btn { background: transparent; border: 1px solid var(--border2); border-radius: 8px; padding: 7px 10px; color: var(--muted); cursor: pointer; font-size: 15px; margin-left: 10px; }
+  .gear-btn.active { background: #1a2235; }
+  .prog-bar-wrap { margin-top: 10px; }
+  .prog-track { height: 4px; background: #151d2a; border-radius: 2px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+  .prog-labels { display: flex; justify-content: space-between; margin-top: 3px; }
+  .prog-labels span { font-size: 10px; font-family: monospace; color: var(--muted); }
+  .macro-bars { display: flex; gap: 10px; margin-top: 10px; }
+  .macro-bar { flex: 1; }
+  .macro-bar .prog-track { height: 3px; }
+  .macro-bar-label { font-size: 10px; font-family: monospace; color: var(--muted); text-align: center; margin-top: 3px; }
+
+  /* MAIN */
+  #main { max-width: 620px; margin: 0 auto; padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 20px); }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .card-label { font-size: 11px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+  /* SETTINGS */
+  #settings-panel { display: none; }
+  #settings-panel.open { display: block; }
+  .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .goal-field label { font-size: 10px; color: var(--muted); font-family: monospace; display: block; margin-bottom: 4px; }
+  .settings-hint { font-size: 10px; color: var(--dim); font-family: monospace; margin-top: 10px; }
+
+  /* INPUTS */
+  .std-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 11px; color: var(--text); font-size: 13px; font-family: monospace; width: 100%; }
+
+  /* MEAL PILLS */
+  .meal-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pill { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font-size: 11px; font-family: monospace; cursor: pointer; transition: all 0.15s; }
+  .pill.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+
+  /* ADD ROW */
+  .add-row { display: flex; gap: 8px; }
+  .add-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 15px; font-family: Georgia, serif; }
+  .add-btn { background: var(--green); border: none; border-radius: 8px; padding: 0 18px; color: var(--bg); font-size: 22px; font-weight: bold; cursor: pointer; }
+  .add-hint { font-size: 10px; color: var(--dim); font-family: monospace; margin-top: 7px; }
+
+  /* USDA */
+  .search-row { display: flex; gap: 8px; }
+  .search-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px; font-family: monospace; }
+  .search-btn { background: #151d2a; border: 1px solid var(--border2); border-radius: 8px; padding: 8px 14px; color: var(--blue); font-family: monospace; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .usda-results { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .usda-item { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .usda-info { flex: 1; min-width: 0; }
+  .usda-name { font-size: 12px; color: #c8c0b4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .usda-brand { font-size: 10px; color: var(--muted); font-family: monospace; }
+  .usda-macros { display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+  .usda-macros span { font-size: 10px; font-family: monospace; }
+  .usda-add { background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 6px; padding: 6px 12px; color: var(--green); cursor: pointer; font-family: monospace; font-size: 11px; white-space: nowrap; }
+
+  /* VIEW TOGGLE */
+  .view-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .view-btn { flex: 1; padding: 9px; font-family: monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-radius: 10px; background: transparent; border: 1px solid var(--border); color: var(--muted); transition: all 0.15s; }
+  .view-btn.active { background: #151d2a; border-color: #2a3550; color: var(--text); }
+
+  /* MACRO SUMMARY */
+  .macro-summary { display: flex; gap: 8px; margin-bottom: 12px; }
+  .macro-box { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .macro-box-val { font-size: 17px; font-family: monospace; font-weight: bold; }
+  .macro-box-label { font-size: 10px; color: var(--muted); font-family: monospace; }
+
+  /* MEAL SECTION */
+  .meal-section { margin-bottom: 16px; }
+  .meal-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+  /* ENTRY */
+  .entry { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 6px; }
+  .entry-row { display: flex; align-items: flex-start; gap: 10px; }
+  .entry-name { font-size: 14px; color: var(--text); margin-bottom: 3px; }
+  .entry-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .entry-portion { font-size: 10px; color: #3a5040; background: #141f18; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
+  .entry-macro { font-size: 10px; font-family: monospace; }
+  .entry-time { font-size: 10px; color: var(--dim); font-family: monospace; }
+  .entry-cal { text-align: right; min-width: 46px; }
+  .entry-cal-num { font-size: 17px; font-family: monospace; font-weight: bold; }
+  .entry-cal-lbl { font-size: 9px; color: var(--dim); font-family: monospace; }
+  .entry-actions { display: flex; flex-direction: column; gap: 4px; }
+  .icon-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 4px 7px; cursor: pointer; font-size: 11px; }
+
+  /* EDIT FORM */
+  .edit-name { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 11px; color: var(--text); font-size: 13px; font-family: Georgia, serif; margin-bottom: 8px; }
+  .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .edit-field label { font-size: 9px; color: var(--muted); font-family: monospace; display: block; margin-bottom: 3px; }
+  .edit-field input { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 8px; color: var(--text); font-size: 12px; font-family: monospace; }
+  .edit-portion { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 11px; color: var(--text); font-size: 13px; font-family: monospace; margin-bottom: 8px; }
+  .edit-btns { display: flex; gap: 8px; }
+  .save-btn { flex: 1; padding: 8px; background: var(--green); border: none; border-radius: 6px; color: var(--bg); font-size: 12px; font-weight: bold; cursor: pointer; font-family: monospace; }
+  .cancel-btn { padding: 8px 14px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 12px; cursor: pointer; font-family: monospace; }
+
+  /* HISTORY */
+  .day-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .day-pill { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 10px; font-family: monospace; cursor: pointer; }
+  .day-pill.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .day-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .day-header span { font-size: 12px; font-family: monospace; color: var(--muted); }
+  .day-kcal { color: var(--green) !important; }
+  .empty { text-align: center; color: var(--dim); padding: 40px 0; font-family: monospace; font-size: 13px; line-height: 1.8; }
+
+  /* LOADING */
+  #loading-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 14px; }
+  .loading-title { font-size: 24px; font-weight: bold; color: #f0e8d8; }
+  .loading-sub { font-size: 12px; color: var(--muted); font-family: monospace; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loading-title">🍽 Nourish</div>
+  <div class="spinner"></div>
+  <div class="loading-sub">Connecting to Firebase…</div>
+</div>
+
+<!-- SYNC BAR -->
+<div id="sync-bar">
+  <span class="sync-dot" id="sync-dot"></span>
+  <span id="sync-text">Connecting…</span>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="header-row">
+    <div>
+      <div class="app-title">🍽 Nourish</div>
+      <div class="app-date" id="header-date"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div>
+        <div class="cal-number" id="header-cal">0</div>
+        <div class="cal-label">kcal today</div>
+      </div>
+      <button class="gear-btn" id="gear-btn" onclick="toggleSettings()">⚙️</button>
+    </div>
+  </div>
+  <div id="cal-prog-wrap" class="prog-bar-wrap" style="display:none;">
+    <div class="prog-track"><div class="prog-fill" id="cal-prog-fill" style="background:var(--green);width:0%"></div></div>
+    <div class="prog-labels"><span id="cal-prog-pct">0%</span><span id="cal-prog-rem"></span></div>
+  </div>
+  <div id="macro-bars-wrap" class="macro-bars" style="display:none;">
+    <div class="macro-bar"><div class="prog-track"><div class="prog-fill" id="p-fill" style="background:var(--blue);width:0%"></div></div><div class="macro-bar-label" id="p-label"></div></div>
+    <div class="macro-bar"><div class="prog-track"><div class="prog-fill" id="c-fill" style="background:var(--gold);width:0%"></div></div><div class="macro-bar-label" id="c-label"></div></div>
+    <div class="macro-bar"><div class="prog-track"><div class="prog-fill" id="f-fill" style="background:var(--pink);width:0%"></div></div><div class="macro-bar-label" id="f-label"></div></div>
+  </div>
+</div>
+
+<div id="main">
+  <!-- SETTINGS -->
+  <div class="card" id="settings-panel">
+    <div class="card-label">Daily Goals — All Optional</div>
+    <div class="goal-grid">
+      <div class="goal-field"><label>Calorie Goal (kcal)</label><input type="number" id="g-cal" placeholder="—" oninput="saveSettings()"></div>
+      <div class="goal-field"><label>Protein Goal (g)</label><input type="number" id="g-pro" placeholder="—" oninput="saveSettings()"></div>
+      <div class="goal-field"><label>Carb Goal (g)</label><input type="number" id="g-carb" placeholder="—" oninput="saveSettings()"></div>
+      <div class="goal-field"><label>Fat Goal (g)</label><input type="number" id="g-fat" placeholder="—" oninput="saveSettings()"></div>
+    </div>
+    <div class="settings-hint">Leave blank to hide. Saved automatically.</div>
+  </div>
+
+  <!-- QUICK ADD -->
+  <div class="card">
+    <div class="card-label">Quick Add</div>
+    <div class="meal-pills" id="meal-pills"></div>
+    <div class="add-row">
+      <input class="add-input" id="food-input" type="text" placeholder="What did you eat? Press ↵ to log…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="add-btn" onclick="addEntry()">+</button>
+    </div>
+    <div class="add-hint">Calories & macros auto-fill for ~35 common foods. Tap ✏️ to edit any entry.</div>
+  </div>
+
+  <!-- USDA -->
+  <div class="card">
+    <div class="card-label">🔍 USDA Food Lookup <span style="text-transform:none;color:var(--dim);font-size:10px;">optional — exact nutrition data</span></div>
+    <div class="search-row">
+      <input class="search-input" id="usda-input" type="text" placeholder="Search any food for accurate macros…" autocomplete="off">
+      <button class="search-btn" id="usda-btn" onclick="searchUSDA()">Search</button>
+    </div>
+    <div id="usda-results"></div>
+  </div>
+
+  <!-- VIEW TOGGLE -->
+  <div class="view-toggle">
+    <button class="view-btn active" id="btn-today" onclick="setView('today')">📅 Today</button>
+    <button class="view-btn" id="btn-log" onclick="setView('log')">📋 History</button>
+  </div>
+
+  <div id="view-today"></div>
+  <div id="view-log" style="display:none;"></div>
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA7wF_jaZr6GgrscbSclWPEC_57klOEWHM",
+  authDomain: "nourish-tracker-health.firebaseapp.com",
+  projectId: "nourish-tracker-health",
+  storageBucket: "nourish-tracker-health.firebasestorage.app",
+  messagingSenderId: "969232888510",
+  appId: "1:969232888510:web:5306d45bb0099b75a2a4ef"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── CONSTANTS ──
+const MEAL_TYPES = ['Breakfast','Lunch','Dinner','Snack'];
+const DEVICE_ID = (() => { let id = localStorage.getItem('nourish-device-id'); if (!id) { id = 'device-' + Math.random().toString(36).slice(2); localStorage.setItem('nourish-device-id', id); } return id; })();
+
+const NUTRITION = {
+  apple:{cal:95,p:0.5,c:25,f:0.3}, banana:{cal:105,p:1.3,c:27,f:0.4},
+  orange:{cal:62,p:1.2,c:15,f:0.2}, grapes:{cal:104,p:1.1,c:27,f:0.2},
+  chicken:{cal:165,p:31,c:0,f:3.6}, beef:{cal:250,p:26,c:0,f:15},
+  salmon:{cal:208,p:20,c:0,f:13}, tuna:{cal:132,p:29,c:0,f:1},
+  egg:{cal:78,p:6,c:0.6,f:5}, eggs:{cal:78,p:6,c:0.6,f:5},
+  rice:{cal:206,p:4.3,c:45,f:0.4}, pasta:{cal:220,p:8,c:43,f:1.3},
+  bread:{cal:79,p:2.7,c:15,f:1}, oatmeal:{cal:154,p:5.4,c:28,f:2.6},
+  milk:{cal:149,p:8,c:12,f:8}, yogurt:{cal:100,p:17,c:6,f:0.7},
+  cheese:{cal:113,p:7,c:0.4,f:9}, broccoli:{cal:55,p:3.7,c:11,f:0.6},
+  salad:{cal:20,p:1.8,c:3.5,f:0.2}, carrot:{cal:52,p:1.2,c:12,f:0.3},
+  potato:{cal:161,p:4.3,c:37,f:0.2}, pizza:{cal:285,p:12,c:36,f:10},
+  burger:{cal:540,p:34,c:40,f:27}, fries:{cal:365,p:4.6,c:48,f:17},
+  sandwich:{cal:350,p:18,c:38,f:13}, coffee:{cal:5,p:0.3,c:0,f:0},
+  juice:{cal:120,p:1.7,c:29,f:0.5}, soda:{cal:140,p:0,c:39,f:0},
+  water:{cal:0,p:0,c:0,f:0}, chocolate:{cal:155,p:2.2,c:17,f:9},
+  cookie:{cal:78,p:1,c:11,f:3.5}, cake:{cal:257,p:3.5,c:40,f:9},
+  icecream:{cal:207,p:3.5,c:24,f:11}, avocado:{cal:160,p:2,c:9,f:15},
+  nuts:{cal:173,p:5,c:6,f:15}, steak:{cal:271,p:26,c:0,f:18},
+  shrimp:{cal:99,p:24,c:0,f:0.3}, turkey:{cal:189,p:29,c:0,f:7},
+  pork:{cal:242,p:27,c:0,f:14},
+};
+
+// ── STATE ──
+let entries = [];
+let settings = {calorieGoal:'',proteinGoal:'',carbGoal:'',fatGoal:''};
+let currentMeal = 'Breakfast';
+let currentView = 'today';
+let activeDay = todayStr();
+let editingId = null;
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function formatDate(d) { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); }
+function nowTime() { return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+function guessNutrition(name) { const l=name.toLowerCase(); for(const[k,v]of Object.entries(NUTRITION)){if(l.includes(k))return v;} return null; }
+function num(v) { return v===''||v==null?null:Number(v); }
+function r(v) { return v==null?null:Math.round(v); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── SYNC STATUS ──
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = text;
+}
+
+// ── FIREBASE: SETTINGS ──
+async function loadSettings() {
+  try {
+    const snap = await getDoc(doc(db, 'settings', DEVICE_ID));
+    if (snap.exists()) {
+      settings = { ...settings, ...snap.data() };
+      document.getElementById('g-cal').value  = settings.calorieGoal || '';
+      document.getElementById('g-pro').value  = settings.proteinGoal || '';
+      document.getElementById('g-carb').value = settings.carbGoal    || '';
+      document.getElementById('g-fat').value  = settings.fatGoal     || '';
+    }
+  } catch(e) { console.error('Settings load error', e); }
+}
+
+window.saveSettings = async function() {
+  settings.calorieGoal = document.getElementById('g-cal').value;
+  settings.proteinGoal = document.getElementById('g-pro').value;
+  settings.carbGoal    = document.getElementById('g-carb').value;
+  settings.fatGoal     = document.getElementById('g-fat').value;
+  setSyncStatus('saving', 'Saving…');
+  try {
+    await setDoc(doc(db, 'settings', DEVICE_ID), settings);
+    setSyncStatus('online', 'Synced ✓');
+  } catch(e) { setSyncStatus('error', 'Save failed'); }
+  updateHeader();
+}
+
+// ── FIREBASE: ENTRIES (real-time listener) ──
+function subscribeEntries() {
+  const q = query(collection(db, 'entries'), orderBy('createdAt', 'desc'));
+  onSnapshot(q, snap => {
+    entries = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+    setSyncStatus('online', 'Synced ✓');
+    updateHeader();
+    renderToday();
+    renderLog();
+    document.getElementById('loading-screen').style.display = 'none';
+  }, err => {
+    setSyncStatus('error', 'Sync error — check connection');
+    document.getElementById('loading-screen').style.display = 'none';
+  });
+}
+
+// ── ADD ENTRY ──
+window.addEntry = async function(overrides) {
+  const inputEl = document.getElementById('food-input');
+  const name = (overrides && overrides.name) || inputEl.value.trim();
+  if (!name) return;
+  const g = guessNutrition(name);
+  const entry = {
+    name,
+    meal: currentMeal,
+    date: todayStr(),
+    time: nowTime(),
+    createdAt: Date.now(),
+    calories: (overrides && overrides.calories != null) ? overrides.calories : (g ? g.cal : null),
+    protein:  (overrides && overrides.protein  != null) ? overrides.protein  : (g ? g.p   : null),
+    carbs:    (overrides && overrides.carbs    != null) ? overrides.carbs    : (g ? g.c   : null),
+    fat:      (overrides && overrides.fat      != null) ? overrides.fat      : (g ? g.f   : null),
+    portion: '',
+  };
+  inputEl.value = '';
+  document.getElementById('usda-results').innerHTML = '';
+  document.getElementById('usda-input').value = '';
+  setSyncStatus('saving', 'Saving…');
+  try {
+    await addDoc(collection(db, 'entries'), entry);
+  } catch(e) { setSyncStatus('error', 'Save failed'); }
+}
+
+window.deleteEntry = async function(firestoreId) {
+  setSyncStatus('saving', 'Deleting…');
+  try { await deleteDoc(doc(db, 'entries', firestoreId)); } catch(e) { setSyncStatus('error', 'Delete failed'); }
+}
+
+window.startEdit = function(firestoreId) {
+  editingId = firestoreId;
+  renderToday(); renderLog();
+}
+window.cancelEdit = function() { editingId = null; renderToday(); renderLog(); }
+
+window.saveEdit = async function(firestoreId) {
+  setSyncStatus('saving', 'Saving…');
+  try {
+    await updateDoc(doc(db, 'entries', firestoreId), {
+      name:     document.getElementById('en-'+firestoreId).value.trim(),
+      calories: num(document.getElementById('ec-'+firestoreId).value),
+      protein:  num(document.getElementById('ep-'+firestoreId).value),
+      carbs:    num(document.getElementById('ecb-'+firestoreId).value),
+      fat:      num(document.getElementById('ef-'+firestoreId).value),
+      portion:  document.getElementById('epo-'+firestoreId).value.trim(),
+    });
+    editingId = null;
+  } catch(e) { setSyncStatus('error', 'Save failed'); }
+}
+
+window.addFromUSDA = function(item) {
+  addEntry({ name: item.name, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat });
+  document.getElementById('usda-results').innerHTML = '';
+  document.getElementById('usda-input').value = '';
+}
+
+// ── HEADER ──
+function updateHeader() {
+  const todayE = entries.filter(e => e.date === todayStr());
+  const cal = todayE.reduce((s,e)=>s+(e.calories||0),0);
+  const p   = todayE.reduce((s,e)=>s+(e.protein||0),0);
+  const c   = todayE.reduce((s,e)=>s+(e.carbs||0),0);
+  const f   = todayE.reduce((s,e)=>s+(e.fat||0),0);
+  const calGoal = num(settings.calorieGoal);
+  const calEl = document.getElementById('header-cal');
+  calEl.innerHTML = calGoal ? `${cal}<span style="font-size:13px;color:var(--muted)">/${calGoal}</span>` : cal;
+  calEl.className = 'cal-number' + (calGoal && cal > calGoal ? ' over' : '');
+  const cpw = document.getElementById('cal-prog-wrap');
+  if (calGoal) {
+    cpw.style.display = 'block';
+    const pct = Math.min(100,Math.round((cal/calGoal)*100));
+    document.getElementById('cal-prog-fill').style.cssText = `width:${pct}%;background:${pct>=100?'var(--red)':'var(--green)'}`;
+    document.getElementById('cal-prog-pct').textContent = pct+'% of goal';
+    document.getElementById('cal-prog-rem').textContent = Math.max(0,calGoal-cal)+' remaining';
+  } else { cpw.style.display = 'none'; }
+  const pg=num(settings.proteinGoal), cg=num(settings.carbGoal), fg=num(settings.fatGoal);
+  const mbw = document.getElementById('macro-bars-wrap');
+  if (pg||cg||fg) {
+    mbw.style.display = 'flex';
+    if(pg){document.getElementById('p-fill').style.width=Math.min(100,Math.round((p/pg)*100))+'%'; document.getElementById('p-label').textContent=`${Math.round(p)}g/${pg}g P`;}
+    if(cg){document.getElementById('c-fill').style.width=Math.min(100,Math.round((c/cg)*100))+'%'; document.getElementById('c-label').textContent=`${Math.round(c)}g/${cg}g C`;}
+    if(fg){document.getElementById('f-fill').style.width=Math.min(100,Math.round((f/fg)*100))+'%'; document.getElementById('f-label').textContent=`${Math.round(f)}g/${fg}g F`;}
+  } else { mbw.style.display='none'; }
+}
+
+// ── RENDER TODAY ──
+function renderToday() {
+  const todayE = entries.filter(e => e.date === todayStr());
+  const p = todayE.reduce((s,e)=>s+(e.protein||0),0);
+  const c = todayE.reduce((s,e)=>s+(e.carbs||0),0);
+  const f = todayE.reduce((s,e)=>s+(e.fat||0),0);
+  const pg=num(settings.proteinGoal),cg=num(settings.carbGoal),fg=num(settings.fatGoal);
+  const hasMacroGoals = pg||cg||fg;
+  const hasMacroData = todayE.some(e=>e.protein||e.carbs||e.fat);
+  let html = '';
+  if (!hasMacroGoals && hasMacroData) {
+    html += `<div class="macro-summary">
+      <div class="macro-box"><div class="macro-box-val" style="color:var(--blue)">${Math.round(p)}g</div><div class="macro-box-label">Protein</div></div>
+      <div class="macro-box"><div class="macro-box-val" style="color:var(--gold)">${Math.round(c)}g</div><div class="macro-box-label">Carbs</div></div>
+      <div class="macro-box"><div class="macro-box-val" style="color:var(--pink)">${Math.round(f)}g</div><div class="macro-box-label">Fat</div></div>
+    </div>`;
+  }
+  let any = false;
+  MEAL_TYPES.forEach(m => {
+    const me = todayE.filter(e=>e.meal===m);
+    if (!me.length) return;
+    any = true;
+    const mCal = me.reduce((s,e)=>s+(e.calories||0),0);
+    html += `<div class="meal-section"><div class="meal-header"><span>${m}</span><span style="color:var(--dim)">${mCal} kcal</span></div>${me.map(e=>entryHTML(e)).join('')}</div>`;
+  });
+  if (!any) html += `<div class="empty">Nothing logged yet today.<br>Add your first meal above ↑</div>`;
+  document.getElementById('view-today').innerHTML = html;
+}
+
+// ── RENDER LOG ──
+function renderLog() {
+  const allDays = [...new Set(entries.map(e=>e.date))].sort((a,b)=>b.localeCompare(a));
+  if (!allDays.includes(activeDay) && allDays.length) activeDay = allDays[0];
+  let html = '';
+  if (!allDays.length) { html = `<div class="empty">No history yet.</div>`; }
+  else {
+    html += `<div class="day-pills">${allDays.map(d=>`<button class="day-pill${d===activeDay?' active':''}" onclick="setActiveDay('${d}')">${d===todayStr()?'Today':formatDate(d)}</button>`).join('')}</div>`;
+    const dayE = entries.filter(e=>e.date===activeDay);
+    const dayCal = dayE.reduce((s,e)=>s+(e.calories||0),0);
+    if (dayE.length) {
+      html += `<div class="day-header"><span>${formatDate(activeDay)} — ${dayE.length} item${dayE.length>1?'s':''}</span><span class="day-kcal">${dayCal} kcal</span></div>`;
+      html += dayE.map(e=>entryHTML(e)).join('');
+    }
+  }
+  document.getElementById('view-log').innerHTML = html;
+}
+
+window.setActiveDay = function(d) { activeDay=d; renderLog(); }
+
+// ── ENTRY HTML ──
+function entryHTML(e) {
+  const fid = e.firestoreId;
+  const hasMacros = e.protein!=null||e.carbs!=null||e.fat!=null;
+  const macroSpans = hasMacros ? `
+    ${e.protein!=null?`<span class="entry-macro" style="color:#4a7080">P:${r(e.protein)}g</span>`:''}
+    ${e.carbs!=null?`<span class="entry-macro" style="color:#806840">C:${r(e.carbs)}g</span>`:''}
+    ${e.fat!=null?`<span class="entry-macro" style="color:#804060">F:${r(e.fat)}g</span>`:''}` : '';
+
+  if (editingId === fid) {
+    return `<div class="entry" id="entry-${fid}">
+      <input class="edit-name" id="en-${fid}" value="${escHtml(e.name)}">
+      <div class="edit-grid">
+        <div class="edit-field"><label>Calories</label><input type="number" id="ec-${fid}" value="${e.calories??''}"></div>
+        <div class="edit-field"><label>Protein g</label><input type="number" id="ep-${fid}" value="${e.protein??''}"></div>
+        <div class="edit-field"><label>Carbs g</label><input type="number" id="ecb-${fid}" value="${e.carbs??''}"></div>
+        <div class="edit-field"><label>Fat g</label><input type="number" id="ef-${fid}" value="${e.fat??''}"></div>
+      </div>
+      <input class="edit-portion" id="epo-${fid}" placeholder="Portion (e.g. 1 cup, 6 oz, 200g)" value="${escHtml(e.portion||'')}">
+      <div class="edit-btns">
+        <button class="save-btn" onclick="saveEdit('${fid}')">Save</button>
+        <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="entry" id="entry-${fid}">
+    <div class="entry-row">
+      <div style="flex:1;min-width:0;">
+        <div class="entry-name">${escHtml(e.name)}</div>
+        <div class="entry-meta">
+          ${e.portion?`<span class="entry-portion">${escHtml(e.portion)}</span>`:''}
+          ${macroSpans}
+          <span class="entry-time">${e.time}</span>
+        </div>
+      </div>
+      <div class="entry-cal">
+        <div class="entry-cal-num" style="color:${e.calories!=null?'var(--green)':'var(--dim)'}">${e.calories??'—'}</div>
+        ${e.calories!=null?'<div class="entry-cal-lbl">kcal</div>':''}
+      </div>
+      <div class="entry-actions">
+        <button class="icon-btn" onclick="startEdit('${fid}')">✏️</button>
+        <button class="icon-btn" style="color:var(--red)" onclick="deleteEntry('${fid}')">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── USDA ──
+window.searchUSDA = async function() {
+  const q = document.getElementById('usda-input').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('usda-btn');
+  btn.textContent = '…'; btn.disabled = true;
+  const el = document.getElementById('usda-results');
+  el.innerHTML = '';
+  try {
+    const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=DEMO_KEY`);
+    const data = await res.json();
+    const foods = (data.foods||[]).map(f => {
+      const get = n => f.foodNutrients?.find(x=>x.nutrientName===n)?.value??null;
+      return { id:f.fdcId, name:f.description, brand:f.brandOwner||'',
+        calories:get('Energy')!=null?Math.round(get('Energy')):null,
+        protein:get('Protein')!=null?Math.round(get('Protein')):null,
+        carbs:get('Carbohydrate, by difference')!=null?Math.round(get('Carbohydrate, by difference')):null,
+        fat:get('Total lipid (fat)')!=null?Math.round(get('Total lipid (fat)')):null };
+    });
+    if (!foods.length) { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">No results. Try a simpler term.</div>'; }
+    else {
+      el.innerHTML = '<div class="usda-results">'+foods.map(item=>`
+        <div class="usda-item">
+          <div class="usda-info">
+            <div class="usda-name">${escHtml(item.name.slice(0,60))}${item.name.length>60?'…':''}</div>
+            ${item.brand?`<div class="usda-brand">${escHtml(item.brand)}</div>`:''}
+            <div class="usda-macros">
+              ${item.calories!=null?`<span style="color:var(--green)">${item.calories} kcal</span>`:''}
+              ${item.protein!=null?`<span style="color:#4a7080">P:${item.protein}g</span>`:''}
+              ${item.carbs!=null?`<span style="color:#806840">C:${item.carbs}g</span>`:''}
+              ${item.fat!=null?`<span style="color:#804060">F:${item.fat}g</span>`:''}
+              <span style="color:var(--dim)">per 100g</span>
+            </div>
+          </div>
+          <button class="usda-add" onclick='addFromUSDA(${JSON.stringify(item)})'>Add</button>
+        </div>`).join('')+'</div>';
+    }
+  } catch { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">Search unavailable offline.</div>'; }
+  btn.textContent='Search'; btn.disabled=false;
+}
+
+// ── UI HELPERS ──
+window.toggleSettings = function() {
+  const p = document.getElementById('settings-panel');
+  const b = document.getElementById('gear-btn');
+  const open = p.classList.toggle('open');
+  b.classList.toggle('active', open);
+}
+
+window.setView = function(v) {
+  currentView = v;
+  document.getElementById('view-today').style.display = v==='today'?'block':'none';
+  document.getElementById('view-log').style.display   = v==='log'?'block':'none';
+  document.getElementById('btn-today').className = 'view-btn'+(v==='today'?' active':'');
+  document.getElementById('btn-log').className   = 'view-btn'+(v==='log'?' active':'');
+}
+
+window.setMeal = function(m) { currentMeal=m; renderMealPills(); }
+
+function renderMealPills() {
+  document.getElementById('meal-pills').innerHTML = MEAL_TYPES.map(m=>
+    `<button class="pill${m===currentMeal?' active':''}" onclick="setMeal('${m}')">${m}</button>`).join('');
+}
+
+// ── INIT ──
+document.getElementById('header-date').textContent =
+  new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+const h = new Date().getHours();
+if(h<11) currentMeal='Breakfast'; else if(h<14) currentMeal='Lunch'; else if(h<18) currentMeal='Snack'; else currentMeal='Dinner';
+renderMealPills();
+
+document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addEntry(); });
+document.getElementById('usda-input').addEventListener('keydown', e=>{ if(e.key==='Enter') searchUSDA(); });
+
+setSyncStatus('saving', 'Connecting…');
+await loadSettings();
+subscribeEntries();
+
+</script>
+</body>
+</html>
