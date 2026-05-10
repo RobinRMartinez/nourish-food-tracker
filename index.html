@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Nourish">
 <title>Nourish — Food Tracker</title>
@@ -174,6 +175,20 @@
 </head>
 <body>
 
+  <!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#0d1117;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;">
+  <div style="font-size:56px">🍽</div>
+  <div style="text-align:center;">
+    <div style="font-size:26px;font-weight:bold;color:#f0e8d8;">Nourish</div>
+    <div style="font-size:13px;color:#404858;margin-top:6px;font-family:monospace;">Your private nutrition data, secured by Google</div>
+  </div>
+  <button id="google-signin-btn" style="display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);font-family:Georgia,serif;width:100%;max-width:280px;justify-content:center;">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20">
+    Sign in with Google
+  </button>
+  <div style="font-size:11px;color:#2a3545;text-align:center;max-width:260px;line-height:1.7;font-family:monospace;">Your food log is private and only visible to you.</div>
+</div>
+
 <!-- LOADING -->
 <div id="loading-screen">
   <div class="loading-title">🍽 Nourish</div>
@@ -262,6 +277,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA7wF_jaZr6GgrscbSclWPEC_57klOEWHM",
@@ -274,10 +290,36 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// GOOGLE SIGN IN
+document.getElementById('google-signin-btn').addEventListener('click', async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    alert('Sign in failed. Please try again.');
+    console.error(e);
+  }
+});
+
+// AUTH STATE
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    CURRENT_USER_ID = user.uid;
+    await loadSettings();
+    subscribeEntries();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('loading-screen').style.display = 'none';
+  }
+});
+
 
 // ── CONSTANTS ──
 const MEAL_TYPES = ['Breakfast','Lunch','Dinner','Snack'];
-const DEVICE_ID = (() => { let id = localStorage.getItem('nourish-device-id'); if (!id) { id = 'device-' + Math.random().toString(36).slice(2); localStorage.setItem('nourish-device-id', id); } return id; })();
+let CURRENT_USER_ID = '';
 
 const NUTRITION = {
   apple:{cal:95,p:0.5,c:25,f:0.3}, banana:{cal:105,p:1.3,c:27,f:0.4},
@@ -308,7 +350,15 @@ let settings = {calorieGoal:'',proteinGoal:'',carbGoal:'',fatGoal:''};
 let currentMeal = 'Breakfast';
 let currentView = 'today';
 let activeDay = todayStr();
+let usdaCache = {};
 let editingId = null;
+window.addFromUSDA = function(id) {
+  const item = usdaCache[id];
+  if (!item) return;
+  addEntry({ name: item.name, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat });
+  document.getElementById('usda-results').innerHTML = '';
+  document.getElementById('usda-input').value = '';
+}
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function formatDate(d) { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); }
@@ -329,8 +379,7 @@ function setSyncStatus(state, text) {
 // ── FIREBASE: SETTINGS ──
 async function loadSettings() {
   try {
-    const snap = await getDoc(doc(db, 'settings', DEVICE_ID));
-    if (snap.exists()) {
+const snap = await getDoc(doc(db, 'settings', CURRENT_USER_ID));    if (snap.exists()) {
       settings = { ...settings, ...snap.data() };
       document.getElementById('g-cal').value  = settings.calorieGoal || '';
       document.getElementById('g-pro').value  = settings.proteinGoal || '';
@@ -347,7 +396,7 @@ window.saveSettings = async function() {
   settings.fatGoal     = document.getElementById('g-fat').value;
   setSyncStatus('saving', 'Saving…');
   try {
-    await setDoc(doc(db, 'settings', DEVICE_ID), settings);
+    await setDoc(doc(db, 'settings', CURRENT_USER_ID), settings);
     setSyncStatus('online', 'Synced ✓');
   } catch(e) { setSyncStatus('error', 'Save failed'); }
   updateHeader();
@@ -355,8 +404,7 @@ window.saveSettings = async function() {
 
 // ── FIREBASE: ENTRIES (real-time listener) ──
 function subscribeEntries() {
-  const q = query(collection(db, 'entries'), orderBy('createdAt', 'desc'));
-  onSnapshot(q, snap => {
+const q = query(collection(db, 'users', CURRENT_USER_ID, 'entries'), orderBy('createdAt', 'desc'));  onSnapshot(q, snap => {
     entries = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
     setSyncStatus('online', 'Synced ✓');
     updateHeader();
@@ -392,13 +440,12 @@ window.addEntry = async function(overrides) {
   document.getElementById('usda-input').value = '';
   setSyncStatus('saving', 'Saving…');
   try {
-    await addDoc(collection(db, 'entries'), entry);
-  } catch(e) { setSyncStatus('error', 'Save failed'); }
+await addDoc(collection(db, 'users', CURRENT_USER_ID, 'entries'), entry);  } catch(e) { setSyncStatus('error', 'Save failed'); }
 }
 
 window.deleteEntry = async function(firestoreId) {
   setSyncStatus('saving', 'Deleting…');
-  try { await deleteDoc(doc(db, 'entries', firestoreId)); } catch(e) { setSyncStatus('error', 'Delete failed'); }
+  try { await deleteDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', firestoreId)); } catch(e) { setSyncStatus('error', 'Delete failed'); }
 }
 
 window.startEdit = function(firestoreId) {
@@ -410,8 +457,7 @@ window.cancelEdit = function() { editingId = null; renderToday(); renderLog(); }
 window.saveEdit = async function(firestoreId) {
   setSyncStatus('saving', 'Saving…');
   try {
-    await updateDoc(doc(db, 'entries', firestoreId), {
-      name:     document.getElementById('en-'+firestoreId).value.trim(),
+await updateDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', firestoreId), {      name:     document.getElementById('en-'+firestoreId).value.trim(),
       calories: num(document.getElementById('ec-'+firestoreId).value),
       protein:  num(document.getElementById('ep-'+firestoreId).value),
       carbs:    num(document.getElementById('ecb-'+firestoreId).value),
@@ -422,11 +468,7 @@ window.saveEdit = async function(firestoreId) {
   } catch(e) { setSyncStatus('error', 'Save failed'); }
 }
 
-window.addFromUSDA = function(item) {
-  addEntry({ name: item.name, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat });
-  document.getElementById('usda-results').innerHTML = '';
-  document.getElementById('usda-input').value = '';
-}
+
 
 // ── HEADER ──
 function updateHeader() {
@@ -562,16 +604,29 @@ window.searchUSDA = async function() {
   const el = document.getElementById('usda-results');
   el.innerHTML = '';
   try {
-    const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=DEMO_KEY`);
+    // Replace YOUR_USDA_API_KEY with your actual key from https://fdc.nal.usda.gov/api-key-signup.html
+// Do NOT commit the real key to GitHub; consider using environment variables or a secure vault for production apps.
+    const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=YOUR_USDA_API_KEY`);
     const data = await res.json();
     const foods = (data.foods||[]).map(f => {
       const get = n => f.foodNutrients?.find(x=>x.nutrientName===n)?.value??null;
-      return { id:f.fdcId, name:f.description, brand:f.brandOwner||'',
-        calories:get('Energy')!=null?Math.round(get('Energy')):null,
-        protein:get('Protein')!=null?Math.round(get('Protein')):null,
-        carbs:get('Carbohydrate, by difference')!=null?Math.round(get('Carbohydrate, by difference')):null,
-        fat:get('Total lipid (fat)')!=null?Math.round(get('Total lipid (fat)')):null };
+      const servingSize = f.servingSize || 100;
+      const servingUnit = f.servingSizeUnit || 'g';
+      const servingLabel = `${servingSize}${servingUnit}`;
+      const scale = servingSize / 100;
+      return {
+        id: f.fdcId,
+        name: f.description,
+        brand: f.brandOwner || '',
+        servingLabel,
+        servingSize,
+        calories: get('Energy (Atwater General Factors)') != null ? Math.round(get('Energy (Atwater General Factors)') * scale) : get('Energy') != null ? Math.round(get('Energy') * scale / 4.184) : null,
+        protein:  get('Protein') != null ? Math.round(get('Protein') * scale) : null,
+        carbs:    get('Carbohydrate, by difference') != null ? Math.round(get('Carbohydrate, by difference') * scale) : null,
+        fat:      get('Total lipid (fat)') != null ? Math.round(get('Total lipid (fat)') * scale) : null
+      };
     });
+    foods.forEach(f => usdaCache[f.id] = f);
     if (!foods.length) { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">No results. Try a simpler term.</div>'; }
     else {
       el.innerHTML = '<div class="usda-results">'+foods.map(item=>`
@@ -584,16 +639,19 @@ window.searchUSDA = async function() {
               ${item.protein!=null?`<span style="color:#4a7080">P:${item.protein}g</span>`:''}
               ${item.carbs!=null?`<span style="color:#806840">C:${item.carbs}g</span>`:''}
               ${item.fat!=null?`<span style="color:#804060">F:${item.fat}g</span>`:''}
-              <span style="color:var(--dim)">per 100g</span>
+              <span style="color:var(--dim)">per ${item.servingLabel}</span>
             </div>
           </div>
-          <button class="usda-add" onclick='addFromUSDA(${JSON.stringify(item)})'>Add</button>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <input type="number" id="qty-${item.id}" value="1" min="0.1" step="0.1" style="width:48px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:12px;">
+            <div style="font-size:9px;color:var(--muted);font-family:monospace;">servings</div>
+            <button class="usda-add" onclick='addFromUSDA("${item.id}")'>Add</button>
+          </div>
         </div>`).join('')+'</div>';
     }
-  } catch { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">Search unavailable offline.</div>'; }
+  } catch(e) { console.error(e); el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">Search unavailable offline.</div>'; }
   btn.textContent='Search'; btn.disabled=false;
 }
-
 // ── UI HELPERS ──
 window.toggleSettings = function() {
   const p = document.getElementById('settings-panel');
@@ -627,9 +685,7 @@ renderMealPills();
 document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addEntry(); });
 document.getElementById('usda-input').addEventListener('keydown', e=>{ if(e.key==='Enter') searchUSDA(); });
 
-setSyncStatus('saving', 'Connecting…');
-await loadSettings();
-subscribeEntries();
+
 // ── BARCODE SCANNER ──
 let scanStream = null;
 let scanInterval = null;
