@@ -519,6 +519,7 @@ window.startVoiceLog = function() {
   voiceRecognition = new SR();
   voiceRecognition.lang = 'en-US';
   voiceRecognition.interimResults = false;
+  voiceRecognition.continuous = true;  
   voiceRecognition.maxAlternatives = 1;
 
   voiceRecognition.onresult = async (event) => {
@@ -607,7 +608,7 @@ window.startVoiceRecipe = function() {
   const label = document.getElementById('recipe-voice-label');
   const status = document.getElementById('recipe-voice-status');
   btn.classList.add('listening');
-  label.textContent = 'Listening… ask for a recipe';
+  label.textContent = 'Listening… tap again when done';
   status.textContent = '';
   document.getElementById('recipe-response').classList.remove('show');
 
