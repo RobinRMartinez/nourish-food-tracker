@@ -796,6 +796,7 @@ window.addEntry = async function(overrides) {
     carbs:    (overrides && overrides.carbs    != null) ? overrides.carbs    : (g ? g.c   : null),
     fat:      (overrides && overrides.fat      != null) ? overrides.fat      : (g ? g.f   : null),
     portion: '',
+    breakdown: (overrides && overrides.breakdown) ? overrides.breakdown : '',
   };
   inputEl.value = '';
   document.getElementById('usda-results').innerHTML = '';
