@@ -14,13 +14,13 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
-    --bg: #0d1117; --surface: #0f1520; --border: #1a2535;
-    --border2: #252d3d; --text: #e0d8cc; --muted: #404858;
-    --dim: #2a3545; --green: #7ecba1; --green-bg: #162a20;
-    --green-border: #253828; --blue: #7eb8cb; --gold: #cbb87e; --pink: #cb7ea8;
-    --red: #e07070; --safe-top: env(safe-area-inset-top, 0px);
+    --bg: #0d1117; --surface: #141c2b; --border: #2a3a50;
+    --border2: #304060; --text: #ffffff; --muted: #b8c8d8;
+    --dim: #8899aa; --green: #4ade80; --green-bg: #162a20;
+    --green-border: #2d5a3a; --blue: #60c8e8; --gold: #fbbf24; --pink: #f472b6;
+    --red: #f87171; --purple: #a78bfa; --safe-top: env(safe-area-inset-top, 0px);
   }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif; overflow-x: hidden; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif; overflow-x: hidden; font-size: 16px; }
   input, button { font-family: inherit; }
   input:focus { outline: 2px solid var(--green); outline-offset: -1px; }
   input[type=number]::-webkit-inner-spin-button,
@@ -35,15 +35,11 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   /* HEADER */
-  #header {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: calc(var(--safe-top) + 14px) 16px 14px;
-    position: sticky; top: 0; z-index: 100;
-  }
+  #header { background: var(--surface); border-bottom: 1px solid var(--border); padding: calc(var(--safe-top) + 14px) 16px 14px; position: sticky; top: 0; z-index: 100; }
   .header-row { display: flex; justify-content: space-between; align-items: center; }
-  .app-title { font-size: 20px; font-weight: bold; color: #f0e8d8; letter-spacing: -0.5px; }
-  .app-date { font-size: 11px; color: var(--muted); font-family: monospace; margin-top: 2px; }
-  .cal-number { font-size: 22px; font-weight: bold; font-family: monospace; color: var(--green); }
+  .app-title { font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.5px; }
+  .app-date { font-size: 13px; color: var(--muted); font-family: monospace; margin-top: 2px; }
+  .cal-number { font-size: 26px; font-weight: bold; font-family: monospace; color: var(--green); }
   .cal-number.over { color: var(--red); }
   .cal-label { font-size: 10px; color: var(--muted); font-family: monospace; }
   .gear-btn { background: transparent; border: 1px solid var(--border2); border-radius: 8px; padding: 7px 10px; color: var(--muted); cursor: pointer; font-size: 15px; margin-left: 10px; }
@@ -58,12 +54,17 @@
   .macro-bar .prog-track { height: 3px; }
   .macro-bar-label { font-size: 10px; font-family: monospace; color: var(--muted); text-align: center; margin-top: 3px; }
 
+  /* TAB NAV */
+  #tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab-btn { flex: 1; padding: 12px 4px; font-family: monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; border: none; background: transparent; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
   /* MAIN */
   #main { max-width: 620px; margin: 0 auto; padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 20px); }
 
   /* CARDS */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
-  .card-label { font-size: 11px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .card-label { font-size: 13px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
 
   /* SETTINGS */
   #settings-panel { display: none; }
@@ -72,31 +73,64 @@
   .goal-field label { font-size: 10px; color: var(--muted); font-family: monospace; display: block; margin-bottom: 4px; }
   .settings-hint { font-size: 10px; color: var(--dim); font-family: monospace; margin-top: 10px; }
 
-  /* INPUTS */
-  .std-input { background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 8px 11px; color: var(--text); font-size: 13px; font-family: monospace; width: 100%; }
-
   /* MEAL PILLS */
   .meal-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-  .pill { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font-size: 11px; font-family: monospace; cursor: pointer; transition: all 0.15s; }
+  .pill { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); font-size: 14px; font-family: monospace; cursor: pointer; transition: all 0.15s; }
   .pill.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
 
   /* ADD ROW */
   .add-row { display: flex; gap: 8px; }
-  .add-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 15px; font-family: Georgia, serif; }
+  .add-input { flex: 1; background: var(--bg); border: 2px solid var(--border2); border-radius: 8px; padding: 13px 14px; color: #ffffff; font-size: 17px; font-family: Georgia, serif; }
   .add-btn { background: var(--green); border: none; border-radius: 8px; padding: 0 18px; color: var(--bg); font-size: 22px; font-weight: bold; cursor: pointer; }
   .add-hint { font-size: 10px; color: var(--dim); font-family: monospace; margin-top: 7px; }
 
+  /* VOICE BUTTON */
+  .voice-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 18px; border: 2px solid var(--purple); border-radius: 14px; background: #1a1535; color: var(--purple); font-size: 16px; font-family: Georgia, serif; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+  .voice-btn.listening { background: #2a1f55; border-color: #c4b5fd; color: #c4b5fd; animation: voice-pulse 1s infinite; }
+  .voice-btn.thinking { border-color: var(--gold); background: #1a1500; color: var(--gold); }
+  @keyframes voice-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,0.4)} 50%{box-shadow:0 0 0 12px rgba(167,139,250,0)} }
+  .voice-status { font-size: 13px; color: var(--muted); font-family: monospace; text-align: center; margin-top: 6px; min-height: 20px; }
+  .voice-result { background: var(--bg); border: 1px solid var(--green-border); border-radius: 10px; padding: 14px; margin-top: 10px; display: none; }
+  .voice-result.show { display: block; }
+  .voice-result-name { font-size: 17px; color: #f0ece6; font-weight: 500; margin-bottom: 8px; }
+  .voice-result-macros { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .voice-result-macros span { font-size: 14px; font-family: monospace; }
+  .voice-confirm-btn { width: 100%; padding: 13px; background: var(--green); border: none; border-radius: 8px; color: var(--bg); font-size: 15px; font-weight: bold; cursor: pointer; font-family: monospace; }
+
+  /* RECIPE TAB */
+  .recipe-voice-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 22px; border: 2px solid var(--gold); border-radius: 14px; background: #1a1400; color: var(--gold); font-size: 17px; font-family: Georgia, serif; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+  .recipe-voice-btn.listening { animation: recipe-pulse 1s infinite; border-color: #fde68a; color: #fde68a; background: #221a00; }
+  .recipe-voice-btn.thinking { border-color: var(--purple); background: #1a1535; color: var(--purple); }
+  @keyframes recipe-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.4)} 50%{box-shadow:0 0 0 12px rgba(251,191,36,0)} }
+  .recipe-response { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: none; }
+  .recipe-response.show { display: block; }
+  .recipe-response-text { font-size: 15px; color: #f0ece6; line-height: 1.7; white-space: pre-wrap; }
+  .recipe-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .recipe-save-btn { flex: 1; padding: 10px; background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 8px; color: var(--green); font-size: 13px; cursor: pointer; font-family: monospace; min-width: 100px; }
+  .recipe-log-btn { flex: 1; padding: 10px; background: #1a1535; border: 1px solid var(--purple); border-radius: 8px; color: var(--purple); font-size: 13px; cursor: pointer; font-family: monospace; min-width: 100px; }
+  .recipe-ask-again-btn { padding: 10px 14px; background: transparent; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-size: 13px; cursor: pointer; font-family: monospace; }
+
+  /* SAVED RECIPES */
+  .saved-recipe { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; }
+  .saved-recipe-name { font-size: 16px; color: #f0ece6; font-weight: 500; margin-bottom: 6px; }
+  .saved-recipe-text { font-size: 13px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; max-height: 120px; overflow: hidden; }
+  .saved-recipe-text.expanded { max-height: none; }
+  .saved-recipe-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .saved-recipe-log-btn { padding: 7px 14px; background: #1a1535; border: 1px solid var(--purple); border-radius: 6px; color: var(--purple); font-size: 12px; cursor: pointer; font-family: monospace; }
+  .saved-recipe-expand-btn { padding: 7px 14px; background: transparent; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted); font-size: 12px; cursor: pointer; font-family: monospace; }
+  .saved-recipe-del-btn { padding: 7px 12px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--red); font-size: 12px; cursor: pointer; font-family: monospace; }
+
   /* USDA */
   .search-row { display: flex; gap: 8px; }
-  .search-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px; font-family: monospace; }
+  .search-input { flex: 1; background: var(--bg); border: 2px solid var(--border2); border-radius: 8px; padding: 11px 13px; color: #ffffff; font-size: 15px; font-family: monospace; }
   .search-btn { background: #151d2a; border: 1px solid var(--border2); border-radius: 8px; padding: 8px 14px; color: var(--blue); font-family: monospace; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .usda-results { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
   .usda-item { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
   .usda-info { flex: 1; min-width: 0; }
-  .usda-name { font-size: 12px; color: #c8c0b4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .usda-brand { font-size: 10px; color: var(--muted); font-family: monospace; }
+  .usda-name { font-size: 15px; color: #f0ece6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .usda-brand { font-size: 12px; color: var(--muted); font-family: monospace; }
   .usda-macros { display: flex; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
-  .usda-macros span { font-size: 10px; font-family: monospace; }
+  .usda-macros span { font-size: 13px; font-family: monospace; }
   .usda-add { background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 6px; padding: 6px 12px; color: var(--green); cursor: pointer; font-family: monospace; font-size: 11px; white-space: nowrap; }
 
   /* VIEW TOGGLE */
@@ -107,23 +141,23 @@
   /* MACRO SUMMARY */
   .macro-summary { display: flex; gap: 8px; margin-bottom: 12px; }
   .macro-box { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
-  .macro-box-val { font-size: 17px; font-family: monospace; font-weight: bold; }
-  .macro-box-label { font-size: 10px; color: var(--muted); font-family: monospace; }
+  .macro-box-val { font-size: 20px; font-family: monospace; font-weight: bold; color: #ffffff; }
+  .macro-box-label { font-size: 13px; color: var(--muted); font-family: monospace; }
 
   /* MEAL SECTION */
   .meal-section { margin-bottom: 16px; }
-  .meal-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .meal-header { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-family: monospace; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
 
   /* ENTRY */
   .entry { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 6px; }
   .entry-row { display: flex; align-items: flex-start; gap: 10px; }
-  .entry-name { font-size: 14px; color: var(--text); margin-bottom: 3px; }
+  .entry-name { font-size: 17px; color: #ffffff; margin-bottom: 4px; font-weight: 500; }
   .entry-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .entry-portion { font-size: 10px; color: #3a5040; background: #141f18; padding: 2px 7px; border-radius: 4px; font-family: monospace; }
-  .entry-macro { font-size: 10px; font-family: monospace; }
-  .entry-time { font-size: 10px; color: var(--dim); font-family: monospace; }
+  .entry-portion { font-size: 12px; color: #86efac; background: #162a20; padding: 3px 8px; border-radius: 4px; font-family: monospace; }
+  .entry-macro { font-size: 13px; font-family: monospace; color: var(--muted); }
+  .entry-time { font-size: 12px; color: var(--muted); font-family: monospace; }
   .entry-cal { text-align: right; min-width: 46px; }
-  .entry-cal-num { font-size: 17px; font-family: monospace; font-weight: bold; }
+  .entry-cal-num { font-size: 20px; font-family: monospace; font-weight: bold; color: var(--green); }
   .entry-cal-lbl { font-size: 9px; color: var(--dim); font-family: monospace; }
   .entry-actions { display: flex; flex-direction: column; gap: 4px; }
   .icon-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 4px 7px; cursor: pointer; font-size: 11px; }
@@ -142,7 +176,7 @@
   .day-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .day-pill { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 10px; font-family: monospace; cursor: pointer; }
   .day-pill.active { border-color: var(--green); background: var(--green-bg); color: var(--green); }
-  .day-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .day-header { display: flex; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 4px; }
   .day-header span { font-size: 12px; font-family: monospace; color: var(--muted); }
   .day-kcal { color: var(--green) !important; }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; font-family: monospace; font-size: 13px; line-height: 1.8; }
@@ -175,7 +209,7 @@
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
+<!-- LOGIN SCREEN -->
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:#0d1117;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;">
   <div style="font-size:56px">🍽</div>
   <div style="text-align:center;">
@@ -228,7 +262,15 @@
   </div>
 </div>
 
+<!-- TAB NAV -->
+<div id="tab-nav">
+  <button class="tab-btn active" id="tab-log-btn" onclick="setTab('log')">🎤 Log Food</button>
+  <button class="tab-btn" id="tab-recipe-btn" onclick="setTab('recipe')">💡 Recipes</button>
+  <button class="tab-btn" id="tab-history-btn" onclick="setTab('history')">📋 History</button>
+</div>
+
 <div id="main">
+
   <!-- SETTINGS -->
   <div class="card" id="settings-panel">
     <div class="card-label">Daily Goals — All Optional</div>
@@ -241,42 +283,112 @@
     <div class="settings-hint">Leave blank to hide. Saved automatically.</div>
   </div>
 
-  <!-- QUICK ADD -->
-  <div class="card">
-    <div class="card-label">Quick Add</div>
-    <div class="meal-pills" id="meal-pills"></div>
-    <div class="add-row">
-      <input class="add-input" id="food-input" type="text" placeholder="What did you eat? Press ↵ to log…" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="add-btn" onclick="addEntry()">+</button>
+  <!-- ── TAB: LOG FOOD ── -->
+  <div id="tab-log">
+
+    <!-- VOICE LOG CARD -->
+    <div class="card">
+      <div class="card-label">🎤 Voice Log</div>
+      <button class="voice-btn" id="voice-log-btn" onclick="startVoiceLog()">
+        <span style="font-size:30px">🎤</span>
+        <span id="voice-log-label">Tap &amp; speak what you ate</span>
+      </button>
+      <div class="voice-status" id="voice-log-status"></div>
+      <div class="voice-result" id="voice-log-result">
+        <div class="voice-result-name" id="voice-log-result-name"></div>
+        <div class="voice-result-macros" id="voice-log-result-macros"></div>
+        <button class="voice-confirm-btn" onclick="confirmVoiceLog()">✓ Log This Meal</button>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:8px;"><button class="scan-btn" onclick="openScanner()">📷 Scan Barcode</button></div>
-    <div class="add-hint">Calories &amp; macros auto-fill for ~35 common foods. Tap ✏️ to edit any entry.</div>
-  </div>
 
-  <!-- USDA -->
-  <div class="card">
-    <div class="card-label">🔍 USDA Food Lookup <span style="text-transform:none;color:var(--dim);font-size:10px;">optional — exact nutrition data</span></div>
-    <div class="search-row">
-      <input class="search-input" id="usda-input" type="text" placeholder="Search any food for accurate macros…" autocomplete="off">
-      <button class="search-btn" id="usda-btn" onclick="searchUSDA()">Search</button>
+    <!-- MEAL PILLS + MANUAL -->
+    <div class="card">
+      <div class="card-label">Quick Add</div>
+      <div class="meal-pills" id="meal-pills"></div>
+      <div class="add-row">
+        <input class="add-input" id="food-input" type="text" placeholder="What did you eat? Press ↵ to log…" autocomplete="off" autocorrect="off" spellcheck="false">
+        <button class="add-btn" onclick="addEntry()">+</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="scan-btn" onclick="openScanner()">📷 Scan Barcode</button>
+      </div>
+      <div class="add-hint">Calories &amp; macros auto-fill for ~40 common foods. Tap ✏️ to edit any entry.</div>
     </div>
-    <div id="usda-results"></div>
+
+    <!-- USDA -->
+    <div class="card">
+      <div class="card-label">🔍 USDA Food Lookup <span style="text-transform:none;color:var(--dim);font-size:10px;">optional — exact nutrition data</span></div>
+      <div class="search-row">
+        <input class="search-input" id="usda-input" type="text" placeholder="Search any food for accurate macros…" autocomplete="off">
+        <button class="search-btn" id="usda-btn" onclick="searchUSDA()">Search</button>
+      </div>
+      <div id="usda-results"></div>
+    </div>
+
+    <!-- TODAY VIEW TOGGLE -->
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-today" onclick="setView('today')">📅 Today</button>
+      <button class="view-btn" id="btn-log" onclick="setView('logview')">📋 Full List</button>
+    </div>
+    <div id="view-today"></div>
+    <div id="view-log" style="display:none;"></div>
   </div>
 
-  <!-- VIEW TOGGLE -->
-  <div class="view-toggle">
-    <button class="view-btn active" id="btn-today" onclick="setView('today')">📅 Today</button>
-    <button class="view-btn" id="btn-log" onclick="setView('log')">📋 History</button>
+  <!-- ── TAB: RECIPES ── -->
+  <div id="tab-recipe" style="display:none;">
+    <div class="card">
+      <div class="card-label">💡 Ask for a Recipe Idea</div>
+      <button class="recipe-voice-btn" id="recipe-voice-btn" onclick="startVoiceRecipe()">
+        <span style="font-size:30px">🎤</span>
+        <span id="recipe-voice-label">Tap &amp; ask for a plant-forward recipe</span>
+      </button>
+      <div class="voice-status" id="recipe-voice-status"></div>
+      <div class="recipe-response" id="recipe-response">
+        <div class="recipe-response-text" id="recipe-response-text"></div>
+        <div class="recipe-actions">
+          <button class="recipe-save-btn" onclick="saveCurrentRecipe()">💾 Save Recipe</button>
+          <button class="recipe-log-btn" onclick="logCurrentRecipe()">📝 Log as Meal</button>
+          <button class="recipe-ask-again-btn" onclick="startVoiceRecipe()">🔄 Ask Again</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">📚 Saved Recipes</div>
+      <div id="saved-recipes-list"><div class="empty">No saved recipes yet.<br>Ask for a recipe idea above and tap Save!</div></div>
+    </div>
   </div>
 
-  <div id="view-today"></div>
-  <div id="view-log" style="display:none;"></div>
+  <!-- ── TAB: HISTORY ── -->
+  <div id="tab-history" style="display:none;">
+    <div id="view-history"></div>
+  </div>
+
+</div>
+
+<!-- SCANNER MODAL -->
+<div id="scanner-modal">
+  <div class="scanner-hint">Point camera at barcode</div>
+  <div class="scanner-frame">
+    <video id="scanner-video" autoplay playsinline muted></video>
+    <div class="scanner-line"></div>
+  </div>
+  <div id="scanner-result">
+    <div class="scan-product-name" id="scan-name"></div>
+    <div class="scan-macros" id="scan-macros"></div>
+    <div class="scan-btns">
+      <button class="scan-add-btn" onclick="confirmScan()">Add to Log</button>
+      <button class="scan-retry-btn" onclick="retryScan()">Scan Again</button>
+    </div>
+  </div>
+  <div class="scanner-hint" id="scanner-status">Scanning…</div>
+  <button class="scanner-close" onclick="closeScanner()">Cancel</button>
 </div>
 
 <!-- Firebase SDKs -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -293,29 +405,23 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// GOOGLE SIGN IN
 document.getElementById('google-signin-btn').addEventListener('click', async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch(e) {
-    alert('Sign in failed. Please try again.');
-    console.error(e);
-  }
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { alert('Sign in failed. Please try again.'); }
 });
 
-// AUTH STATE
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById('login-screen').style.display = 'none';
     CURRENT_USER_ID = user.uid;
     await loadSettings();
     subscribeEntries();
+    loadSavedRecipes();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('loading-screen').style.display = 'none';
   }
 });
-
 
 // ── CONSTANTS ──
 const MEAL_TYPES = ['Breakfast','Lunch','Dinner','Snack'];
@@ -341,17 +447,27 @@ const NUTRITION = {
   icecream:{cal:207,p:3.5,c:24,f:11}, avocado:{cal:160,p:2,c:9,f:15},
   nuts:{cal:173,p:5,c:6,f:15}, steak:{cal:271,p:26,c:0,f:18},
   shrimp:{cal:99,p:24,c:0,f:0.3}, turkey:{cal:189,p:29,c:0,f:7},
-  pork:{cal:242,p:27,c:0,f:14},
+  pork:{cal:242,p:27,c:0,f:14}, edamame:{cal:120,p:11,c:9,f:5},
+  chickpeas:{cal:269,p:15,c:45,f:4}, lentils:{cal:230,p:18,c:40,f:1},
+  tofu:{cal:76,p:8,c:2,f:4}, tempeh:{cal:195,p:20,c:8,f:11},
+  spinach:{cal:23,p:2.9,c:3.6,f:0.4}, cauliflower:{cal:25,p:2,c:5,f:0.3},
+  hemp:{cal:57,p:3.2,c:1,f:4.5}, hummus:{cal:166,p:8,c:14,f:10},
+  quinoa:{cal:222,p:8,c:39,f:3.5}, beans:{cal:227,p:15,c:41,f:0.9},
 };
 
 // ── STATE ──
 let entries = [];
+let savedRecipes = [];
 let settings = {calorieGoal:'',proteinGoal:'',carbGoal:'',fatGoal:''};
 let currentMeal = 'Breakfast';
 let currentView = 'today';
 let activeDay = todayStr();
 let usdaCache = {};
 let editingId = null;
+let currentTab = 'log';
+let pendingVoiceEntry = null;
+let currentRecipeText = '';
+
 window.addFromUSDA = function(id) {
   const item = usdaCache[id];
   if (!item) return;
@@ -368,25 +484,278 @@ function num(v) { return v===''||v==null?null:Number(v); }
 function r(v) { return v==null?null:Math.round(v); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── SYNC STATUS ──
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  dot.className = 'sync-dot ' + state;
-  txt.textContent = text;
+// ── SPEAK (text-to-speech) ──
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.95; utter.pitch = 1; utter.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Moira'));
+  if (preferred) utter.voice = preferred;
+  window.speechSynthesis.speak(utter);
 }
 
-// ── FIREBASE: SETTINGS ──
+// ── VOICE LOG ──
+let voiceLogListening = false;
+let voiceRecognition = null;
+
+window.startVoiceLog = function() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById('voice-log-status').textContent = 'Voice not supported — use Safari on iPhone';
+    return;
+  }
+  if (voiceLogListening) { if (voiceRecognition) voiceRecognition.stop(); return; }
+  voiceLogListening = true;
+  const btn = document.getElementById('voice-log-btn');
+  const label = document.getElementById('voice-log-label');
+  const status = document.getElementById('voice-log-status');
+  btn.classList.add('listening');
+  label.textContent = 'Listening… speak now';
+  status.textContent = '';
+  document.getElementById('voice-log-result').classList.remove('show');
+
+  voiceRecognition = new SR();
+  voiceRecognition.lang = 'en-US';
+  voiceRecognition.interimResults = false;
+  voiceRecognition.maxAlternatives = 1;
+
+  voiceRecognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    status.textContent = 'Heard: "' + transcript + '"';
+    btn.classList.remove('listening');
+    btn.classList.add('thinking');
+    label.textContent = 'Looking up nutrition…';
+    voiceLogListening = false;
+    await lookupNutritionFromVoice(transcript);
+  };
+  voiceRecognition.onerror = () => {
+    voiceLogListening = false;
+    btn.classList.remove('listening','thinking');
+    label.textContent = 'Tap & speak what you ate';
+    status.textContent = 'Could not hear — tap to try again';
+  };
+  voiceRecognition.onend = () => {
+    if (voiceLogListening) {
+      voiceLogListening = false;
+      btn.classList.remove('listening','thinking');
+      label.textContent = 'Tap & speak what you ate';
+    }
+  };
+  voiceRecognition.start();
+}
+
+async function lookupNutritionFromVoice(transcript) {
+  const btn = document.getElementById('voice-log-btn');
+  const label = document.getElementById('voice-log-label');
+  const status = document.getElementById('voice-log-status');
+  try {
+    const response = await fetch('/api/anthropic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: `The user just said they ate: "${transcript}"\nRespond ONLY with a JSON object, no other text, no markdown backticks:\n{"name":"short meal name","calories":number,"protein":number,"carbs":number,"fat":number,"spoken":"Logged! That is about X calories and Y grams of protein."}` }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content[0].text.trim().replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    pendingVoiceEntry = parsed;
+    document.getElementById('voice-log-result-name').textContent = parsed.name;
+    document.getElementById('voice-log-result-macros').innerHTML =
+      '<span style="color:var(--green)">' + parsed.calories + ' kcal</span>' +
+      '<span style="color:var(--blue)">P:' + parsed.protein + 'g</span>' +
+      '<span style="color:var(--gold)">C:' + parsed.carbs + 'g</span>' +
+      '<span style="color:var(--pink)">F:' + parsed.fat + 'g</span>';
+    document.getElementById('voice-log-result').classList.add('show');
+    btn.classList.remove('thinking');
+    label.textContent = 'Tap & speak what you ate';
+    status.textContent = '';
+    speak(parsed.spoken);
+  } catch(e) {
+    btn.classList.remove('thinking');
+    label.textContent = 'Tap & speak what you ate';
+    status.textContent = 'Could not look up nutrition — tap to try again';
+    speak('Sorry, I had trouble with that. Please try again.');
+  }
+}
+
+window.confirmVoiceLog = async function() {
+  if (!pendingVoiceEntry) return;
+  await addEntry({ name: pendingVoiceEntry.name, calories: pendingVoiceEntry.calories, protein: pendingVoiceEntry.protein, carbs: pendingVoiceEntry.carbs, fat: pendingVoiceEntry.fat });
+  document.getElementById('voice-log-result').classList.remove('show');
+  pendingVoiceEntry = null;
+  speak('Got it, meal logged!');
+}
+
+// ── VOICE RECIPE ──
+let voiceRecipeListening = false;
+let recipeRecognition = null;
+
+window.startVoiceRecipe = function() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById('recipe-voice-status').textContent = 'Voice not supported — use Safari on iPhone';
+    return;
+  }
+  if (voiceRecipeListening) { if (recipeRecognition) recipeRecognition.stop(); return; }
+  voiceRecipeListening = true;
+  const btn = document.getElementById('recipe-voice-btn');
+  const label = document.getElementById('recipe-voice-label');
+  const status = document.getElementById('recipe-voice-status');
+  btn.classList.add('listening');
+  label.textContent = 'Listening… ask for a recipe';
+  status.textContent = '';
+  document.getElementById('recipe-response').classList.remove('show');
+
+  recipeRecognition = new SR();
+  recipeRecognition.lang = 'en-US';
+  recipeRecognition.interimResults = false;
+
+  recipeRecognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    status.textContent = 'Heard: "' + transcript + '"';
+    btn.classList.remove('listening');
+    btn.classList.add('thinking');
+    label.textContent = 'Thinking up a recipe…';
+    voiceRecipeListening = false;
+    await getRecipeIdea(transcript);
+  };
+  recipeRecognition.onerror = () => {
+    voiceRecipeListening = false;
+    btn.classList.remove('listening','thinking');
+    label.textContent = 'Tap & ask for a plant-forward recipe';
+    status.textContent = 'Could not hear — tap to try again';
+  };
+  recipeRecognition.onend = () => {
+    if (voiceRecipeListening) {
+      voiceRecipeListening = false;
+      btn.classList.remove('listening','thinking');
+      label.textContent = 'Tap & ask for a plant-forward recipe';
+    }
+  };
+  recipeRecognition.start();
+}
+
+async function getRecipeIdea(transcript) {
+  const btn = document.getElementById('recipe-voice-btn');
+  const label = document.getElementById('recipe-voice-label');
+  const status = document.getElementById('recipe-voice-status');
+  try {
+    const response = await fetch('/api/anthropic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: 'You are a plant-forward nutrition coach who specializes in quick, high-protein, plant-focused meals. Keep recipes to 5 minutes or under when possible. Use simple pantry ingredients. Format clearly with a recipe name, ingredients list, and short steps. Be friendly and concise.',
+        messages: [{ role: 'user', content: transcript }]
+      })
+    });
+    const data = await response.json();
+    const recipeText = data.content[0].text.trim();
+    currentRecipeText = recipeText;
+    document.getElementById('recipe-response-text').textContent = recipeText;
+    document.getElementById('recipe-response').classList.add('show');
+    btn.classList.remove('thinking');
+    label.textContent = 'Tap & ask for a plant-forward recipe';
+    status.textContent = '';
+    const firstLine = recipeText.split('\n')[0].replace(/^#+\s*/,'');
+    speak('Here is an idea: ' + firstLine + '. Check the screen for the full recipe.');
+  } catch(e) {
+    btn.classList.remove('thinking');
+    label.textContent = 'Tap & ask for a plant-forward recipe';
+    status.textContent = 'Could not get recipe — tap to try again';
+    speak('Sorry, I had trouble with that. Please try again.');
+  }
+}
+
+window.saveCurrentRecipe = async function() {
+  if (!currentRecipeText || !CURRENT_USER_ID) return;
+  const name = currentRecipeText.split('\n')[0].replace(/^#+\s*/,'').slice(0,80);
+  try {
+    await addDoc(collection(db, 'users', CURRENT_USER_ID, 'recipes'), { name, text: currentRecipeText, createdAt: Date.now() });
+    speak('Recipe saved!');
+    loadSavedRecipes();
+  } catch(e) { console.error(e); }
+}
+
+window.logCurrentRecipe = async function() {
+  if (!currentRecipeText) return;
+  const name = currentRecipeText.split('\n')[0].replace(/^#+\s*/,'').slice(0,80);
+  await addEntry({ name });
+  speak('Logged as a meal!');
+}
+
+async function loadSavedRecipes() {
+  if (!CURRENT_USER_ID) return;
+  try {
+    const q = query(collection(db, 'users', CURRENT_USER_ID, 'recipes'), orderBy('createdAt','desc'));
+    const snap = await getDocs(q);
+    savedRecipes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSavedRecipes();
+  } catch(e) { console.error(e); }
+}
+
+function renderSavedRecipes() {
+  const el = document.getElementById('saved-recipes-list');
+  if (!savedRecipes.length) {
+    el.innerHTML = '<div class="empty">No saved recipes yet.<br>Ask for a recipe idea above and tap Save!</div>';
+    return;
+  }
+  el.innerHTML = savedRecipes.map(rec => `
+    <div class="saved-recipe">
+      <div class="saved-recipe-name">${escHtml(rec.name)}</div>
+      <div class="saved-recipe-text" id="rt-${rec.id}">${escHtml(rec.text)}</div>
+      <div class="saved-recipe-actions">
+        <button class="saved-recipe-log-btn" onclick="logSavedRecipe('${rec.id}')">📝 Log as Meal</button>
+        <button class="saved-recipe-expand-btn" onclick="expandRecipe('${rec.id}')">👁 Show Full</button>
+        <button class="saved-recipe-del-btn" onclick="deleteSavedRecipe('${rec.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+window.expandRecipe = function(id) {
+  const el = document.getElementById('rt-'+id);
+  el.classList.toggle('expanded');
+}
+
+window.logSavedRecipe = async function(id) {
+  const rec = savedRecipes.find(r => r.id === id);
+  if (!rec) return;
+  await addEntry({ name: rec.name });
+  speak('Logged as a meal!');
+}
+
+window.deleteSavedRecipe = async function(id) {
+  try {
+    await deleteDoc(doc(db, 'users', CURRENT_USER_ID, 'recipes', id));
+    savedRecipes = savedRecipes.filter(r => r.id !== id);
+    renderSavedRecipes();
+  } catch(e) { console.error(e); }
+}
+
+// ── SYNC STATUS ──
+function setSyncStatus(state, text) {
+  document.getElementById('sync-dot').className = 'sync-dot ' + state;
+  document.getElementById('sync-text').textContent = text;
+}
+
+// ── SETTINGS ──
 async function loadSettings() {
   try {
-const snap = await getDoc(doc(db, 'settings', CURRENT_USER_ID));    if (snap.exists()) {
+    const snap = await getDoc(doc(db, 'settings', CURRENT_USER_ID));
+    if (snap.exists()) {
       settings = { ...settings, ...snap.data() };
       document.getElementById('g-cal').value  = settings.calorieGoal || '';
       document.getElementById('g-pro').value  = settings.proteinGoal || '';
       document.getElementById('g-carb').value = settings.carbGoal    || '';
       document.getElementById('g-fat').value  = settings.fatGoal     || '';
     }
-  } catch(e) { console.error('Settings load error', e); }
+  } catch(e) { console.error(e); }
 }
 
 window.saveSettings = async function() {
@@ -402,33 +771,30 @@ window.saveSettings = async function() {
   updateHeader();
 }
 
-// ── FIREBASE: ENTRIES (real-time listener) ──
+// ── ENTRIES ──
 function subscribeEntries() {
-const q = query(collection(db, 'users', CURRENT_USER_ID, 'entries'), orderBy('createdAt', 'desc'));  onSnapshot(q, snap => {
+  const q = query(collection(db, 'users', CURRENT_USER_ID, 'entries'), orderBy('createdAt', 'desc'));
+  onSnapshot(q, snap => {
     entries = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
     setSyncStatus('online', 'Synced ✓');
     updateHeader();
     renderToday();
     renderLog();
+    renderHistory();
     document.getElementById('loading-screen').style.display = 'none';
-  }, err => {
+  }, () => {
     setSyncStatus('error', 'Sync error — check connection');
     document.getElementById('loading-screen').style.display = 'none';
   });
 }
 
-// ── ADD ENTRY ──
 window.addEntry = async function(overrides) {
   const inputEl = document.getElementById('food-input');
   const name = (overrides && overrides.name) || inputEl.value.trim();
   if (!name) return;
   const g = guessNutrition(name);
   const entry = {
-    name,
-    meal: currentMeal,
-    date: todayStr(),
-    time: nowTime(),
-    createdAt: Date.now(),
+    name, meal: currentMeal, date: todayStr(), time: nowTime(), createdAt: Date.now(),
     calories: (overrides && overrides.calories != null) ? overrides.calories : (g ? g.cal : null),
     protein:  (overrides && overrides.protein  != null) ? overrides.protein  : (g ? g.p   : null),
     carbs:    (overrides && overrides.carbs    != null) ? overrides.carbs    : (g ? g.c   : null),
@@ -439,36 +805,33 @@ window.addEntry = async function(overrides) {
   document.getElementById('usda-results').innerHTML = '';
   document.getElementById('usda-input').value = '';
   setSyncStatus('saving', 'Saving…');
-  try {
-await addDoc(collection(db, 'users', CURRENT_USER_ID, 'entries'), entry);  } catch(e) { setSyncStatus('error', 'Save failed'); }
+  try { await addDoc(collection(db, 'users', CURRENT_USER_ID, 'entries'), entry); }
+  catch(e) { setSyncStatus('error', 'Save failed'); }
 }
 
-window.deleteEntry = async function(firestoreId) {
+window.deleteEntry = async function(fid) {
   setSyncStatus('saving', 'Deleting…');
-  try { await deleteDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', firestoreId)); } catch(e) { setSyncStatus('error', 'Delete failed'); }
+  try { await deleteDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', fid)); }
+  catch(e) { setSyncStatus('error', 'Delete failed'); }
 }
 
-window.startEdit = function(firestoreId) {
-  editingId = firestoreId;
-  renderToday(); renderLog();
-}
-window.cancelEdit = function() { editingId = null; renderToday(); renderLog(); }
+window.startEdit  = function(fid) { editingId = fid; renderToday(); renderLog(); renderHistory(); }
+window.cancelEdit = function()    { editingId = null; renderToday(); renderLog(); renderHistory(); }
 
-window.saveEdit = async function(firestoreId) {
+window.saveEdit = async function(fid) {
   setSyncStatus('saving', 'Saving…');
   try {
-await updateDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', firestoreId), {      name:     document.getElementById('en-'+firestoreId).value.trim(),
-      calories: num(document.getElementById('ec-'+firestoreId).value),
-      protein:  num(document.getElementById('ep-'+firestoreId).value),
-      carbs:    num(document.getElementById('ecb-'+firestoreId).value),
-      fat:      num(document.getElementById('ef-'+firestoreId).value),
-      portion:  document.getElementById('epo-'+firestoreId).value.trim(),
+    await updateDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', fid), {
+      name:     document.getElementById('en-'+fid).value.trim(),
+      calories: num(document.getElementById('ec-'+fid).value),
+      protein:  num(document.getElementById('ep-'+fid).value),
+      carbs:    num(document.getElementById('ecb-'+fid).value),
+      fat:      num(document.getElementById('ef-'+fid).value),
+      portion:  document.getElementById('epo-'+fid).value.trim(),
     });
     editingId = null;
   } catch(e) { setSyncStatus('error', 'Save failed'); }
 }
-
-
 
 // ── HEADER ──
 function updateHeader() {
@@ -479,13 +842,13 @@ function updateHeader() {
   const f   = todayE.reduce((s,e)=>s+(e.fat||0),0);
   const calGoal = num(settings.calorieGoal);
   const calEl = document.getElementById('header-cal');
-  calEl.innerHTML = calGoal ? `${cal}<span style="font-size:13px;color:var(--muted)">/${calGoal}</span>` : cal;
+  calEl.innerHTML = calGoal ? cal+'<span style="font-size:13px;color:var(--muted)">/' + calGoal + '</span>' : cal;
   calEl.className = 'cal-number' + (calGoal && cal > calGoal ? ' over' : '');
   const cpw = document.getElementById('cal-prog-wrap');
   if (calGoal) {
     cpw.style.display = 'block';
     const pct = Math.min(100,Math.round((cal/calGoal)*100));
-    document.getElementById('cal-prog-fill').style.cssText = `width:${pct}%;background:${pct>=100?'var(--red)':'var(--green)'}`;
+    document.getElementById('cal-prog-fill').style.cssText = 'width:'+pct+'%;background:'+(pct>=100?'var(--red)':'var(--green)');
     document.getElementById('cal-prog-pct').textContent = pct+'% of goal';
     document.getElementById('cal-prog-rem').textContent = Math.max(0,calGoal-cal)+' remaining';
   } else { cpw.style.display = 'none'; }
@@ -493,9 +856,9 @@ function updateHeader() {
   const mbw = document.getElementById('macro-bars-wrap');
   if (pg||cg||fg) {
     mbw.style.display = 'flex';
-    if(pg){document.getElementById('p-fill').style.width=Math.min(100,Math.round((p/pg)*100))+'%'; document.getElementById('p-label').textContent=`${Math.round(p)}g/${pg}g P`;}
-    if(cg){document.getElementById('c-fill').style.width=Math.min(100,Math.round((c/cg)*100))+'%'; document.getElementById('c-label').textContent=`${Math.round(c)}g/${cg}g C`;}
-    if(fg){document.getElementById('f-fill').style.width=Math.min(100,Math.round((f/fg)*100))+'%'; document.getElementById('f-label').textContent=`${Math.round(f)}g/${fg}g F`;}
+    if(pg){document.getElementById('p-fill').style.width=Math.min(100,Math.round((p/pg)*100))+'%'; document.getElementById('p-label').textContent=Math.round(p)+'g/'+pg+'g P';}
+    if(cg){document.getElementById('c-fill').style.width=Math.min(100,Math.round((c/cg)*100))+'%'; document.getElementById('c-label').textContent=Math.round(c)+'g/'+cg+'g C';}
+    if(fg){document.getElementById('f-fill').style.width=Math.min(100,Math.round((f/fg)*100))+'%'; document.getElementById('f-label').textContent=Math.round(f)+'g/'+fg+'g F';}
   } else { mbw.style.display='none'; }
 }
 
@@ -505,16 +868,14 @@ function renderToday() {
   const p = todayE.reduce((s,e)=>s+(e.protein||0),0);
   const c = todayE.reduce((s,e)=>s+(e.carbs||0),0);
   const f = todayE.reduce((s,e)=>s+(e.fat||0),0);
-  const pg=num(settings.proteinGoal),cg=num(settings.carbGoal),fg=num(settings.fatGoal);
-  const hasMacroGoals = pg||cg||fg;
   const hasMacroData = todayE.some(e=>e.protein||e.carbs||e.fat);
   let html = '';
-  if (!hasMacroGoals && hasMacroData) {
-    html += `<div class="macro-summary">
-      <div class="macro-box"><div class="macro-box-val" style="color:var(--blue)">${Math.round(p)}g</div><div class="macro-box-label">Protein</div></div>
-      <div class="macro-box"><div class="macro-box-val" style="color:var(--gold)">${Math.round(c)}g</div><div class="macro-box-label">Carbs</div></div>
-      <div class="macro-box"><div class="macro-box-val" style="color:var(--pink)">${Math.round(f)}g</div><div class="macro-box-label">Fat</div></div>
-    </div>`;
+  if (!num(settings.proteinGoal) && hasMacroData) {
+    html += '<div class="macro-summary">' +
+      '<div class="macro-box"><div class="macro-box-val" style="color:var(--blue)">'+Math.round(p)+'g</div><div class="macro-box-label">Protein</div></div>' +
+      '<div class="macro-box"><div class="macro-box-val" style="color:var(--gold)">'+Math.round(c)+'g</div><div class="macro-box-label">Carbs</div></div>' +
+      '<div class="macro-box"><div class="macro-box-val" style="color:var(--pink)">'+Math.round(f)+'g</div><div class="macro-box-label">Fat</div></div>' +
+      '</div>';
   }
   let any = false;
   MEAL_TYPES.forEach(m => {
@@ -522,77 +883,78 @@ function renderToday() {
     if (!me.length) return;
     any = true;
     const mCal = me.reduce((s,e)=>s+(e.calories||0),0);
-    html += `<div class="meal-section"><div class="meal-header"><span>${m}</span><span style="color:var(--dim)">${mCal} kcal</span></div>${me.map(e=>entryHTML(e)).join('')}</div>`;
+    html += '<div class="meal-section"><div class="meal-header"><span>'+m+'</span><span style="color:var(--dim)">'+mCal+' kcal</span></div>'+me.map(e=>entryHTML(e)).join('')+'</div>';
   });
-  if (!any) html += `<div class="empty">Nothing logged yet today.<br>Add your first meal above ↑</div>`;
+  if (!any) html += '<div class="empty">Nothing logged yet today.<br>Tap 🎤 above to log by voice!</div>';
   document.getElementById('view-today').innerHTML = html;
 }
 
-// ── RENDER LOG ──
 function renderLog() {
+  const todayE = entries.filter(e => e.date === todayStr());
+  document.getElementById('view-log').innerHTML = todayE.length ? todayE.map(e=>entryHTML(e)).join('') : '<div class="empty">No entries today yet.</div>';
+}
+
+function renderHistory() {
   const allDays = [...new Set(entries.map(e=>e.date))].sort((a,b)=>b.localeCompare(a));
   if (!allDays.includes(activeDay) && allDays.length) activeDay = allDays[0];
   let html = '';
-  if (!allDays.length) { html = `<div class="empty">No history yet.</div>`; }
+  if (!allDays.length) { html = '<div class="empty">No history yet.</div>'; }
   else {
-    html += `<div class="day-pills">${allDays.map(d=>`<button class="day-pill${d===activeDay?' active':''}" onclick="setActiveDay('${d}')">${d===todayStr()?'Today':formatDate(d)}</button>`).join('')}</div>`;
+    html += '<div class="day-pills">'+allDays.map(d=>'<button class="day-pill'+(d===activeDay?' active':'')+'" onclick="setActiveDay(\''+d+'\')">'+( d===todayStr()?'Today':formatDate(d))+'</button>').join('')+'</div>';
     const dayE = entries.filter(e=>e.date===activeDay);
     const dayCal = dayE.reduce((s,e)=>s+(e.calories||0),0);
+    const dayP   = dayE.reduce((s,e)=>s+(e.protein||0),0);
     if (dayE.length) {
-      html += `<div class="day-header"><span>${formatDate(activeDay)} — ${dayE.length} item${dayE.length>1?'s':''}</span><span class="day-kcal">${dayCal} kcal</span></div>`;
+      html += '<div class="day-header"><span>'+formatDate(activeDay)+' — '+dayE.length+' item'+(dayE.length>1?'s':'')+'</span><span class="day-kcal">'+dayCal+' kcal · '+Math.round(dayP)+'g protein</span></div>';
       html += dayE.map(e=>entryHTML(e)).join('');
     }
   }
-  document.getElementById('view-log').innerHTML = html;
+  document.getElementById('view-history').innerHTML = html;
 }
 
-window.setActiveDay = function(d) { activeDay=d; renderLog(); }
+window.setActiveDay = function(d) { activeDay=d; renderHistory(); }
 
-// ── ENTRY HTML ──
 function entryHTML(e) {
   const fid = e.firestoreId;
-  const hasMacros = e.protein!=null||e.carbs!=null||e.fat!=null;
-  const macroSpans = hasMacros ? `
-    ${e.protein!=null?`<span class="entry-macro" style="color:#4a7080">P:${r(e.protein)}g</span>`:''}
-    ${e.carbs!=null?`<span class="entry-macro" style="color:#806840">C:${r(e.carbs)}g</span>`:''}
-    ${e.fat!=null?`<span class="entry-macro" style="color:#804060">F:${r(e.fat)}g</span>`:''}` : '';
+  const macroSpans = (e.protein!=null||e.carbs!=null||e.fat!=null) ?
+    (e.protein!=null?'<span class="entry-macro" style="color:#4a7080">P:'+r(e.protein)+'g</span>':'')+
+    (e.carbs!=null?'<span class="entry-macro" style="color:#806840">C:'+r(e.carbs)+'g</span>':'')+
+    (e.fat!=null?'<span class="entry-macro" style="color:#804060">F:'+r(e.fat)+'g</span>':'') : '';
 
   if (editingId === fid) {
-    return `<div class="entry" id="entry-${fid}">
-      <input class="edit-name" id="en-${fid}" value="${escHtml(e.name)}">
-      <div class="edit-grid">
-        <div class="edit-field"><label>Calories</label><input type="number" id="ec-${fid}" value="${e.calories??''}"></div>
-        <div class="edit-field"><label>Protein g</label><input type="number" id="ep-${fid}" value="${e.protein??''}"></div>
-        <div class="edit-field"><label>Carbs g</label><input type="number" id="ecb-${fid}" value="${e.carbs??''}"></div>
-        <div class="edit-field"><label>Fat g</label><input type="number" id="ef-${fid}" value="${e.fat??''}"></div>
-      </div>
-      <input class="edit-portion" id="epo-${fid}" placeholder="Portion (e.g. 1 cup, 6 oz, 200g)" value="${escHtml(e.portion||'')}">
-      <div class="edit-btns">
-        <button class="save-btn" onclick="saveEdit('${fid}')">Save</button>
-        <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
-      </div>
-    </div>`;
+    return '<div class="entry" id="entry-'+fid+'">'+
+      '<input class="edit-name" id="en-'+fid+'" value="'+escHtml(e.name)+'">'+
+      '<div class="edit-grid">'+
+        '<div class="edit-field"><label>Calories</label><input type="number" id="ec-'+fid+'" value="'+(e.calories??'')+'"></div>'+
+        '<div class="edit-field"><label>Protein g</label><input type="number" id="ep-'+fid+'" value="'+(e.protein??'')+'"></div>'+
+        '<div class="edit-field"><label>Carbs g</label><input type="number" id="ecb-'+fid+'" value="'+(e.carbs??'')+'"></div>'+
+        '<div class="edit-field"><label>Fat g</label><input type="number" id="ef-'+fid+'" value="'+(e.fat??'')+'"></div>'+
+      '</div>'+
+      '<input class="edit-portion" id="epo-'+fid+'" placeholder="Portion (e.g. 1 cup, 6 oz)" value="'+escHtml(e.portion||'')+'">'+
+      '<div class="edit-btns">'+
+        '<button class="save-btn" onclick="saveEdit(\''+fid+'\')">Save</button>'+
+        '<button class="cancel-btn" onclick="cancelEdit()">Cancel</button>'+
+      '</div></div>';
   }
-  return `<div class="entry" id="entry-${fid}">
-    <div class="entry-row">
-      <div style="flex:1;min-width:0;">
-        <div class="entry-name">${escHtml(e.name)}</div>
-        <div class="entry-meta">
-          ${e.portion?`<span class="entry-portion">${escHtml(e.portion)}</span>`:''}
-          ${macroSpans}
-          <span class="entry-time">${e.time}</span>
-        </div>
-      </div>
-      <div class="entry-cal">
-        <div class="entry-cal-num" style="color:${e.calories!=null?'var(--green)':'var(--dim)'}">${e.calories??'—'}</div>
-        ${e.calories!=null?'<div class="entry-cal-lbl">kcal</div>':''}
-      </div>
-      <div class="entry-actions">
-        <button class="icon-btn" onclick="startEdit('${fid}')">✏️</button>
-        <button class="icon-btn" style="color:var(--red)" onclick="deleteEntry('${fid}')">✕</button>
-      </div>
-    </div>
-  </div>`;
+  return '<div class="entry" id="entry-'+fid+'">'+
+    '<div class="entry-row">'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div class="entry-name">'+escHtml(e.name)+'</div>'+
+        '<div class="entry-meta">'+
+          (e.portion?'<span class="entry-portion">'+escHtml(e.portion)+'</span>':'')+
+          macroSpans+
+          '<span class="entry-time">'+e.time+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="entry-cal">'+
+        '<div class="entry-cal-num" style="color:'+(e.calories!=null?'var(--green)':'var(--dim)')+'">'+( e.calories??'—')+'</div>'+
+        (e.calories!=null?'<div class="entry-cal-lbl">kcal</div>':'')+
+      '</div>'+
+      '<div class="entry-actions">'+
+        '<button class="icon-btn" onclick="startEdit(\''+fid+'\')">✏️</button>'+
+        '<button class="icon-btn" style="color:var(--red)" onclick="deleteEntry(\''+fid+'\')">✕</button>'+
+      '</div>'+
+    '</div></div>';
 }
 
 // ── USDA ──
@@ -604,222 +966,165 @@ window.searchUSDA = async function() {
   const el = document.getElementById('usda-results');
   el.innerHTML = '';
   try {
-    // Replace YOUR_USDA_API_KEY with your actual key from https://fdc.nal.usda.gov/api-key-signup.html
-// Do NOT commit the real key to GitHub; consider using environment variables or a secure vault for production apps.
-    const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=YOUR_USDA_API_KEY`);
+    const res = await fetch('https://api.nal.usda.gov/fdc/v1/foods/search?query='+encodeURIComponent(q)+'&pageSize=6&api_key=XzANpTLSKmPU1PqNqz062p8Ut75HXsNt7AQOSLxA');
     const data = await res.json();
     const foods = (data.foods||[]).map(f => {
       const get = n => f.foodNutrients?.find(x=>x.nutrientName===n)?.value??null;
       const servingSize = f.servingSize || 100;
-      const servingUnit = f.servingSizeUnit || 'g';
-      const servingLabel = `${servingSize}${servingUnit}`;
       const scale = servingSize / 100;
       return {
-        id: f.fdcId,
-        name: f.description,
-        brand: f.brandOwner || '',
-        servingLabel,
-        servingSize,
-        calories: get('Energy (Atwater General Factors)') != null ? Math.round(get('Energy (Atwater General Factors)') * scale) : get('Energy') != null ? Math.round(get('Energy') * scale / 4.184) : null,
-        protein:  get('Protein') != null ? Math.round(get('Protein') * scale) : null,
-        carbs:    get('Carbohydrate, by difference') != null ? Math.round(get('Carbohydrate, by difference') * scale) : null,
-        fat:      get('Total lipid (fat)') != null ? Math.round(get('Total lipid (fat)') * scale) : null
+        id: f.fdcId, name: f.description, brand: f.brandOwner || '',
+        servingLabel: servingSize+(f.servingSizeUnit||'g'),
+        calories: get('Energy (Atwater General Factors)')!=null ? Math.round(get('Energy (Atwater General Factors)')*scale) : get('Energy')!=null ? Math.round(get('Energy')*scale/4.184) : null,
+        protein:  get('Protein')!=null ? Math.round(get('Protein')*scale) : null,
+        carbs:    get('Carbohydrate, by difference')!=null ? Math.round(get('Carbohydrate, by difference')*scale) : null,
+        fat:      get('Total lipid (fat)')!=null ? Math.round(get('Total lipid (fat)')*scale) : null,
       };
     });
     foods.forEach(f => usdaCache[f.id] = f);
     if (!foods.length) { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">No results. Try a simpler term.</div>'; }
     else {
-      el.innerHTML = '<div class="usda-results">'+foods.map(item=>`
-        <div class="usda-item">
-          <div class="usda-info">
-            <div class="usda-name">${escHtml(item.name.slice(0,60))}${item.name.length>60?'…':''}</div>
-            ${item.brand?`<div class="usda-brand">${escHtml(item.brand)}</div>`:''}
-            <div class="usda-macros">
-              ${item.calories!=null?`<span style="color:var(--green)">${item.calories} kcal</span>`:''}
-              ${item.protein!=null?`<span style="color:#4a7080">P:${item.protein}g</span>`:''}
-              ${item.carbs!=null?`<span style="color:#806840">C:${item.carbs}g</span>`:''}
-              ${item.fat!=null?`<span style="color:#804060">F:${item.fat}g</span>`:''}
-              <span style="color:var(--dim)">per ${item.servingLabel}</span>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <input type="number" id="qty-${item.id}" value="1" min="0.1" step="0.1" style="width:48px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:12px;">
-            <div style="font-size:9px;color:var(--muted);font-family:monospace;">servings</div>
-            <button class="usda-add" onclick='addFromUSDA("${item.id}")'>Add</button>
-          </div>
-        </div>`).join('')+'</div>';
+      el.innerHTML = '<div class="usda-results">'+foods.map(item=>
+        '<div class="usda-item">'+
+          '<div class="usda-info">'+
+            '<div class="usda-name">'+escHtml(item.name.slice(0,60))+(item.name.length>60?'…':'')+'</div>'+
+            (item.brand?'<div class="usda-brand">'+escHtml(item.brand)+'</div>':'')+
+            '<div class="usda-macros">'+
+              (item.calories!=null?'<span style="color:var(--green)">'+item.calories+' kcal</span>':'')+
+              (item.protein!=null?'<span style="color:#4a7080">P:'+item.protein+'g</span>':'')+
+              (item.carbs!=null?'<span style="color:#806840">C:'+item.carbs+'g</span>':'')+
+              (item.fat!=null?'<span style="color:#804060">F:'+item.fat+'g</span>':'')+
+              '<span style="color:var(--dim)">per '+item.servingLabel+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">'+
+            '<input type="number" id="qty-'+item.id+'" value="1" min="0.1" step="0.1" style="width:48px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:12px;">'+
+            '<div style="font-size:9px;color:var(--muted);font-family:monospace;">servings</div>'+
+            '<button class="usda-add" onclick=\'addFromUSDA("'+item.id+'")\'>Add</button>'+
+          '</div>'+
+        '</div>').join('')+'</div>';
     }
-  } catch(e) { console.error(e); el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">Search unavailable offline.</div>'; }
+  } catch(e) { el.innerHTML='<div style="font-size:12px;color:var(--muted);font-family:monospace;margin-top:10px;">Search unavailable offline.</div>'; }
   btn.textContent='Search'; btn.disabled=false;
 }
+
 // ── UI HELPERS ──
 window.toggleSettings = function() {
   const p = document.getElementById('settings-panel');
   const b = document.getElementById('gear-btn');
-  const open = p.classList.toggle('open');
-  b.classList.toggle('active', open);
+  b.classList.toggle('active', p.classList.toggle('open'));
+}
+
+window.setTab = function(tab) {
+  currentTab = tab;
+  ['log','recipe','history'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+    document.getElementById('tab-'+t+'-btn').className = 'tab-btn' + (t===tab ? ' active' : '');
+  });
 }
 
 window.setView = function(v) {
   currentView = v;
-  document.getElementById('view-today').style.display = v==='today'?'block':'none';
-  document.getElementById('view-log').style.display   = v==='log'?'block':'none';
-  document.getElementById('btn-today').className = 'view-btn'+(v==='today'?' active':'');
-  document.getElementById('btn-log').className   = 'view-btn'+(v==='log'?' active':'');
+  document.getElementById('view-today').style.display = v==='today'   ? 'block' : 'none';
+  document.getElementById('view-log').style.display   = v==='logview' ? 'block' : 'none';
+  document.getElementById('btn-today').className = 'view-btn'+(v==='today'  ?' active':'');
+  document.getElementById('btn-log').className   = 'view-btn'+(v==='logview'?' active':'');
 }
 
 window.setMeal = function(m) { currentMeal=m; renderMealPills(); }
 
 function renderMealPills() {
   document.getElementById('meal-pills').innerHTML = MEAL_TYPES.map(m=>
-    `<button class="pill${m===currentMeal?' active':''}" onclick="setMeal('${m}')">${m}</button>`).join('');
+    '<button class="pill'+(m===currentMeal?' active':'')+'" onclick="setMeal(\''+m+'\')">'+m+'</button>').join('');
 }
 
 // ── INIT ──
-document.getElementById('header-date').textContent =
-  new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
 const h = new Date().getHours();
 if(h<11) currentMeal='Breakfast'; else if(h<14) currentMeal='Lunch'; else if(h<18) currentMeal='Snack'; else currentMeal='Dinner';
 renderMealPills();
-
 document.getElementById('food-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addEntry(); });
 document.getElementById('usda-input').addEventListener('keydown', e=>{ if(e.key==='Enter') searchUSDA(); });
-
+if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); }
 
 // ── BARCODE SCANNER ──
-let scanStream = null;
-let scanInterval = null;
-let scannedProduct = null;
+let scanStream = null, scanInterval = null, scannedProduct = null;
 
 window.openScanner = async function() {
   document.getElementById('scanner-modal').classList.add('open');
   document.getElementById('scanner-result').style.display = 'none';
   document.getElementById('scanner-status').textContent = 'Starting camera…';
   try {
-    scanStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
     const video = document.getElementById('scanner-video');
-    video.srcObject = scanStream;
-    await video.play();
+    video.srcObject = scanStream; await video.play();
     document.getElementById('scanner-status').textContent = 'Point at a barcode…';
     startDecoding(video);
-  } catch(e) {
-    document.getElementById('scanner-status').textContent = 'Camera access denied. Please allow camera in Safari settings.';
-  }
+  } catch(e) { document.getElementById('scanner-status').textContent = 'Camera access denied. Allow camera in Safari settings.'; }
 }
 
 function startDecoding(video) {
-  if (!('BarcodeDetector' in window)) {
-    document.getElementById('scanner-status').textContent = 'Barcode scanning not supported on this browser. Try Safari on iOS 17+.';
-    return;
-  }
+  if (!('BarcodeDetector' in window)) { document.getElementById('scanner-status').textContent = 'Barcode scanning not supported. Try Safari on iOS 17+.'; return; }
   const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code'] });
   scanInterval = setInterval(async () => {
     if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
     try {
       const barcodes = await detector.detect(video);
-      if (barcodes.length > 0) {
-        clearInterval(scanInterval);
-        const code = barcodes[0].rawValue;
-        document.getElementById('scanner-status').textContent = `Found: ${code} — Looking up…`;
-        lookupBarcode(code);
-      }
+      if (barcodes.length > 0) { clearInterval(scanInterval); document.getElementById('scanner-status').textContent = 'Found: '+barcodes[0].rawValue+' — Looking up…'; lookupBarcode(barcodes[0].rawValue); }
     } catch(e) {}
   }, 400);
 }
 
 async function lookupBarcode(code) {
   try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+    const res = await fetch('https://world.openfoodfacts.org/api/v0/product/'+code+'.json');
     const data = await res.json();
     if (data.status === 1 && data.product) {
-      const p = data.product;
-      const n = p.nutriments || {};
-      const serving = p.serving_size || '100g';
+      const p = data.product, n = p.nutriments || {}, serving = p.serving_size || '100g';
       scannedProduct = {
-        name: p.product_name || p.abbreviated_product_name || 'Unknown Product',
-        brand: p.brands || '',
-        calories: n['energy-kcal_serving'] ? Math.round(n['energy-kcal_serving']) : (n['energy-kcal_100g'] ? Math.round(n['energy-kcal_100g']) : null),
-        protein:  n['proteins_serving']    ? Math.round(n['proteins_serving'])    : (n['proteins_100g']    ? Math.round(n['proteins_100g'])    : null),
-        carbs:    n['carbohydrates_serving']? Math.round(n['carbohydrates_serving']):(n['carbohydrates_100g']?Math.round(n['carbohydrates_100g']):null),
-        fat:      n['fat_serving']          ? Math.round(n['fat_serving'])          : (n['fat_100g']          ? Math.round(n['fat_100g'])          : null),
+        name: p.product_name || 'Unknown Product', brand: p.brands || '',
+        calories: n['energy-kcal_serving']?Math.round(n['energy-kcal_serving']):(n['energy-kcal_100g']?Math.round(n['energy-kcal_100g']):null),
+        protein:  n['proteins_serving']?Math.round(n['proteins_serving']):(n['proteins_100g']?Math.round(n['proteins_100g']):null),
+        carbs:    n['carbohydrates_serving']?Math.round(n['carbohydrates_serving']):(n['carbohydrates_100g']?Math.round(n['carbohydrates_100g']):null),
+        fat:      n['fat_serving']?Math.round(n['fat_serving']):(n['fat_100g']?Math.round(n['fat_100g']):null),
         portion: serving,
       };
       showScanResult(scannedProduct);
-    } else {
-      document.getElementById('scanner-status').textContent = 'Product not found. Try USDA search instead.';
-      setTimeout(() => retryScan(), 2000);
-    }
-  } catch(e) {
-    document.getElementById('scanner-status').textContent = 'Lookup failed. Check connection.';
-  }
+    } else { document.getElementById('scanner-status').textContent = 'Product not found. Try USDA search instead.'; setTimeout(retryScan, 2000); }
+  } catch(e) { document.getElementById('scanner-status').textContent = 'Lookup failed. Check connection.'; }
 }
 
 function showScanResult(p) {
   stopCamera();
-  document.getElementById('scan-name').textContent = (p.brand ? p.brand + ' — ' : '') + p.name;
-  document.getElementById('scan-macros').innerHTML = `
-    ${p.calories!=null?`<span style="color:var(--green)">${p.calories} kcal</span>`:''}
-    ${p.protein!=null?`<span style="color:#5a8090">P:${p.protein}g</span>`:''}
-    ${p.carbs!=null?`<span style="color:#807040">C:${p.carbs}g</span>`:''}
-    ${p.fat!=null?`<span style="color:#804060">F:${p.fat}g</span>`:''}
-    ${p.portion?`<span style="color:var(--dim)">per ${p.portion}</span>`:''}
-  `;
+  document.getElementById('scan-name').textContent = (p.brand?p.brand+' — ':'')+p.name;
+  document.getElementById('scan-macros').innerHTML =
+    (p.calories!=null?'<span style="color:var(--green)">'+p.calories+' kcal</span>':'')+
+    (p.protein!=null?'<span style="color:#5a8090">P:'+p.protein+'g</span>':'')+
+    (p.carbs!=null?'<span style="color:#807040">C:'+p.carbs+'g</span>':'')+
+    (p.fat!=null?'<span style="color:#804060">F:'+p.fat+'g</span>':'')+
+    (p.portion?'<span style="color:var(--dim)">per '+p.portion+'</span>':'');
   document.getElementById('scanner-result').style.display = 'block';
   document.getElementById('scanner-status').textContent = '';
 }
 
-window.confirmScan = function() {
-  if (!scannedProduct) return;
-  addEntry(scannedProduct);
-  closeScanner();
-}
-
+window.confirmScan = function() { if (scannedProduct) { addEntry(scannedProduct); closeScanner(); } }
 window.retryScan = async function() {
   scannedProduct = null;
   document.getElementById('scanner-result').style.display = 'none';
   document.getElementById('scanner-status').textContent = 'Point at a barcode…';
   const video = document.getElementById('scanner-video');
-  if (!scanStream) {
-    await window.openScanner();
-  } else {
-    startDecoding(video);
-  }
+  if (!scanStream) { await window.openScanner(); } else { startDecoding(video); }
 }
-
 function stopCamera() {
   if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
 }
-
 window.closeScanner = function() {
-  stopCamera();
-  scannedProduct = null;
+  stopCamera(); scannedProduct = null;
   document.getElementById('scanner-modal').classList.remove('open');
   document.getElementById('scanner-result').style.display = 'none';
   document.getElementById('scanner-status').textContent = 'Scanning…';
 }
-
-
 </script>
-<!-- SCANNER MODAL -->
-<div id="scanner-modal">
-  <div class="scanner-hint">Point camera at barcode</div>
-  <div class="scanner-frame">
-    <video id="scanner-video" autoplay playsinline muted></video>
-    <div class="scanner-line"></div>
-  </div>
-  <div id="scanner-result">
-    <div class="scan-product-name" id="scan-name"></div>
-    <div class="scan-macros" id="scan-macros"></div>
-    <div class="scan-btns">
-      <button class="scan-add-btn" onclick="confirmScan()">Add to Log</button>
-      <button class="scan-retry-btn" onclick="retryScan()">Scan Again</button>
-    </div>
-  </div>
-  <div class="scanner-hint" id="scanner-status">Scanning…</div>
-  <button class="scanner-close" onclick="closeScanner()">Cancel</button>
-</div>
 </body>
 </html>
