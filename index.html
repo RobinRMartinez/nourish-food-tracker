@@ -574,7 +574,7 @@ async function lookupNutritionFromVoice(transcript) {
     document.getElementById('voice-log-result').classList.add('show');
     btn.classList.remove('thinking');
     label.textContent = 'Tap & speak what you ate';
-    status.textContent = '';
+    // status.textContent = '';
     speak(parsed.spoken);
   } catch(e) {
     btn.classList.remove('thinking');
