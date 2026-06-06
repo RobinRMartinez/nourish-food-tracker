@@ -552,7 +552,7 @@ async function lookupNutritionFromVoice(transcript) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 300,
-        messages: [{ role: 'user', content: `The user just said they ate: "${transcript}"\nRespond ONLY with a JSON object, no other text, no markdown backticks:\n{"name":"short meal name","calories":number,"protein":number,"carbs":number,"fat":number,"spoken":"Logged! That is about X calories and Y grams of protein."}` }]
+        messages: [{ role: 'user', content: `The user just said they ate: "${transcript}"\nRespond ONLY with a JSON object, no other text, no markdown backticks:\n{"name":"short meal name","calories":number,"protein":number,"carbs":number,"fat":number,"spoken":"Logged! That is about X calories and Y grams of protein.","breakdown":"Estimated: ingredient1 ~X cal, ingredient2 ~X cal, etc. Protein mainly from ingredient."}` }]
       })
     });
     const data = await response.json();
@@ -580,7 +580,7 @@ async function lookupNutritionFromVoice(transcript) {
 
 window.confirmVoiceLog = async function() {
   if (!pendingVoiceEntry) return;
-  await addEntry({ name: pendingVoiceEntry.name, calories: pendingVoiceEntry.calories, protein: pendingVoiceEntry.protein, carbs: pendingVoiceEntry.carbs, fat: pendingVoiceEntry.fat });
+  await addEntry({ name: pendingVoiceEntry.name, calories: pendingVoiceEntry.calories, protein: pendingVoiceEntry.protein, carbs: pendingVoiceEntry.carbs, fat: pendingVoiceEntry.fat, breakdown: pendingVoiceEntry.breakdown || '' });
   document.getElementById('voice-log-result').classList.remove('show');
   document.getElementById('voice-log-status').innerHTML = '';
   pendingVoiceEntry = null;
@@ -947,10 +947,13 @@ function entryHTML(e) {
         (e.calories!=null?'<div class="entry-cal-lbl">kcal</div>':'')+
       '</div>'+
       '<div class="entry-actions">'+
-        '<button class="icon-btn" onclick="startEdit(\''+fid+'\')">✏️</button>'+
+        (e.breakdown ? '<button class="icon-btn" title="How was this calculated?" onclick="toggleBreakdown(\''+fid+'\')">🔍</button>' : '')+
+'<button class="icon-btn" onclick="startEdit(\''+fid+'\')">✏️</button>'+
         '<button class="icon-btn" style="color:var(--red)" onclick="deleteEntry(\''+fid+'\')">✕</button>'+
       '</div>'+
-    '</div></div>';
+    '</div>'+
+(e.breakdown ? '<div id="bd-'+fid+'" style="display:none;font-size:12px;color:var(--muted);font-family:monospace;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6;">'+escHtml(e.breakdown)+'</div>' : '')+
+'</div>';
 }
 
 // ── USDA ──
@@ -1175,6 +1178,10 @@ window.addFromUSDA = function(id) {
   });
   document.getElementById('usda-results').innerHTML = '';
   document.getElementById('usda-input').value = '';
+}
+window.toggleBreakdown = function(fid) {
+  const el = document.getElementById('bd-'+fid);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 </script>
 </body>
