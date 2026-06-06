@@ -524,7 +524,7 @@ window.startVoiceLog = function() {
 
   voiceRecognition.onresult = async (event) => {
     const transcript = event.results[0][0].transcript;
-    status.textContent = 'Heard: "' + transcript + '"';
+    status.innerHTML = '<textarea id="heard-text" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px;color:var(--text);font-size:13px;font-family:monospace;margin-top:4px;resize:none;min-height:60px;">' + transcript + '</textarea><button onclick="resubmitVoice()" style="width:100%;margin-top:6px;padding:8px;background:#1a1535;border:1px solid var(--purple);border-radius:8px;color:var(--purple);font-family:monospace;font-size:12px;cursor:pointer;">🔄 Re-look up with edits</button>';
     btn.classList.remove('listening');
     btn.classList.add('thinking');
     label.textContent = 'Looking up nutrition…';
@@ -618,7 +618,7 @@ window.startVoiceRecipe = function() {
 
   recipeRecognition.onresult = async (event) => {
     const transcript = event.results[0][0].transcript;
-    status.innerHTML = '<textarea id="heard-text" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px;color:var(--text);font-size:13px;font-family:monospace;margin-top:4px;resize:none;min-height:60px;">' + transcript + '</textarea><button onclick="resubmitVoice()" style="width:100%;margin-top:6px;padding:8px;background:#1a1535;border:1px solid var(--purple);border-radius:8px;color:var(--purple);font-family:monospace;font-size:12px;cursor:pointer;">🔄 Re-look up with edits</button>';
+    status.textContent = 'Heard: "' + transcript + '"';
     btn.classList.remove('listening');
     btn.classList.add('thinking');
     label.textContent = 'Thinking up a recipe…';
