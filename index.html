@@ -471,7 +471,14 @@ let currentRecipeText = '';
 window.addFromUSDA = function(id) {
   const item = usdaCache[id];
   if (!item) return;
-  addEntry({ name: item.name, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat });
+  const qty = parseFloat(document.getElementById('qty-'+id).value) || 1;
+  addEntry({
+    name: item.name + (qty !== 1 ? ' ('+qty+' serving'+(qty!==1?'s':'')+')'  : ''),
+    calories: item.calories != null ? Math.round(item.calories * qty) : null,
+    protein:  item.protein  != null ? Math.round(item.protein  * qty) : null,
+    carbs:    item.carbs    != null ? Math.round(item.carbs    * qty) : null,
+    fat:      item.fat      != null ? Math.round(item.fat      * qty) : null,
+  });
   document.getElementById('usda-results').innerHTML = '';
   document.getElementById('usda-input').value = '';
 }
@@ -973,10 +980,12 @@ window.searchUSDA = async function() {
     const foods = (data.foods||[]).map(f => {
       const get = n => f.foodNutrients?.find(x=>x.nutrientName===n)?.value??null;
       const servingSize = f.servingSize || 100;
+      const servingUnit = f.servingSizeUnit || 'g';
+      const servingLabel = f.servingSize ? servingSize + servingUnit : '100g (no serving info)';
       const scale = servingSize / 100;
       return {
         id: f.fdcId, name: f.description, brand: f.brandOwner || '',
-        servingLabel: servingSize+(f.servingSizeUnit||'g'),
+        servingLabel,
         calories: get('Energy (Atwater General Factors)')!=null ? Math.round(get('Energy (Atwater General Factors)')*scale) : get('Energy')!=null ? Math.round(get('Energy')*scale/4.184) : null,
         protein:  get('Protein')!=null ? Math.round(get('Protein')*scale) : null,
         carbs:    get('Carbohydrate, by difference')!=null ? Math.round(get('Carbohydrate, by difference')*scale) : null,
@@ -996,7 +1005,7 @@ window.searchUSDA = async function() {
               (item.protein!=null?'<span style="color:#4a7080">P:'+item.protein+'g</span>':'')+
               (item.carbs!=null?'<span style="color:#806840">C:'+item.carbs+'g</span>':'')+
               (item.fat!=null?'<span style="color:#804060">F:'+item.fat+'g</span>':'')+
-              '<span style="color:var(--dim)">per '+item.servingLabel+'</span>'+
+              '<span style="color:var(--dim)">per '+item.servingLabel+' · change servings below</span>'+
             '</div>'+
           '</div>'+
           '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">'+
