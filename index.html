@@ -588,6 +588,7 @@ window.confirmVoiceLog = async function() {
   if (!pendingVoiceEntry) return;
   await addEntry({ name: pendingVoiceEntry.name, calories: pendingVoiceEntry.calories, protein: pendingVoiceEntry.protein, carbs: pendingVoiceEntry.carbs, fat: pendingVoiceEntry.fat });
   document.getElementById('voice-log-result').classList.remove('show');
+  document.getElementById('voice-log-status').innerHTML = '';
   pendingVoiceEntry = null;
   speak('Got it, meal logged!');
 }
