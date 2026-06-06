@@ -973,6 +973,7 @@ window.searchUSDA = async function() {
       return {
         id: f.fdcId, name: f.description, brand: f.brandOwner || '',
         servingLabel,
+        servingSize,
         calories: get('Energy (Atwater General Factors)')!=null ? Math.round(get('Energy (Atwater General Factors)')*scale) : get('Energy')!=null ? Math.round(get('Energy')*scale/4.184) : null,
         protein:  get('Protein')!=null ? Math.round(get('Protein')*scale) : null,
         carbs:    get('Carbohydrate, by difference')!=null ? Math.round(get('Carbohydrate, by difference')*scale) : null,
