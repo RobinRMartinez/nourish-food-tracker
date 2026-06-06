@@ -468,20 +468,7 @@ let currentTab = 'log';
 let pendingVoiceEntry = null;
 let currentRecipeText = '';
 
-window.addFromUSDA = function(id) {
-  const item = usdaCache[id];
-  if (!item) return;
-  const qty = parseFloat(document.getElementById('qty-'+id).value) || 1;
-  addEntry({
-    name: item.name + (qty !== 1 ? ' ('+qty+' serving'+(qty!==1?'s':'')+')'  : ''),
-    calories: item.calories != null ? Math.round(item.calories * qty) : null,
-    protein:  item.protein  != null ? Math.round(item.protein  * qty) : null,
-    carbs:    item.carbs    != null ? Math.round(item.carbs    * qty) : null,
-    fat:      item.fat      != null ? Math.round(item.fat      * qty) : null,
-  });
-  document.getElementById('usda-results').innerHTML = '';
-  document.getElementById('usda-input').value = '';
-}
+
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function formatDate(d) { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); }
@@ -1008,9 +995,16 @@ window.searchUSDA = async function() {
               '<span style="color:var(--dim)">per '+item.servingLabel+' · change servings below</span>'+
             '</div>'+
           '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">'+
-            '<input type="number" id="qty-'+item.id+'" value="1" min="0.1" step="0.1" style="width:48px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:12px;">'+
-            '<div style="font-size:9px;color:var(--muted);font-family:monospace;">servings</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;min-width:90px;">'+
+            '<select id="unit-'+item.id+'" onchange="convertUnit(\''+item.id+'\','+item.servingSize+')" style="width:90px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:11px;">'+
+              '<option value="serving">servings</option>'+
+              '<option value="tsp">tsp</option>'+
+              '<option value="tbsp">tbsp</option>'+
+              '<option value="cup">cup</option>'+
+              '<option value="oz">oz</option>'+
+              '<option value="g">g</option>'+
+            '</select>'+
+            '<input type="number" id="qty-'+item.id+'" value="1" min="0.01" step="0.1" style="width:90px;text-align:center;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:4px;color:var(--text);font-family:monospace;font-size:12px;">'+
             '<button class="usda-add" onclick=\'addFromUSDA("'+item.id+'")\'>Add</button>'+
           '</div>'+
         '</div>').join('')+'</div>';
@@ -1147,6 +1141,39 @@ window.resubmitVoice = async function() {
   btn.classList.add('thinking');
   label.textContent = 'Looking up nutrition…';
   await lookupNutritionFromVoice(edited);
+}
+
+window.convertUnit = function(id, servingSizeG) {
+  const unit = document.getElementById('unit-'+id).value;
+  const qtyEl = document.getElementById('qty-'+id);
+  const baseG = servingSizeG || 100;
+  // conversion factors to grams
+  const toGrams = { serving: baseG, tsp: 4.2, tbsp: 14.2, cup: 236, oz: 28.35, g: 1 };
+  // when user switches unit, convert current qty to new unit's equivalent of 1 serving
+  qtyEl.value = 1;
+  qtyEl.step = unit === 'g' ? '1' : '0.1';
+}
+
+window.addFromUSDA = function(id) {
+  const item = usdaCache[id];
+  if (!item) return;
+  const unit = document.getElementById('unit-'+id).value;
+  const qtyVal = parseFloat(document.getElementById('qty-'+id).value) || 1;
+  const baseG = item.servingSize || 100;
+  const toGrams = { serving: baseG, tsp: 4.2, tbsp: 14.2, cup: 236, oz: 28.35, g: 1 };
+  const totalG = qtyVal * toGrams[unit];
+  const multiplier = totalG / baseG;
+  const portionLabel = qtyVal + ' ' + unit + (unit !== 'serving' ? '' : (qtyVal !== 1 ? 's' : ''));
+  addEntry({
+    name: item.name,
+    calories: item.calories != null ? Math.round(item.calories * multiplier) : null,
+    protein:  item.protein  != null ? Math.round(item.protein  * multiplier) : null,
+    carbs:    item.carbs    != null ? Math.round(item.carbs    * multiplier) : null,
+    fat:      item.fat      != null ? Math.round(item.fat      * multiplier) : null,
+    portion:  portionLabel,
+  });
+  document.getElementById('usda-results').innerHTML = '';
+  document.getElementById('usda-input').value = '';
 }
 </script>
 </body>
