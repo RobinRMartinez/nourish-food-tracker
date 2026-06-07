@@ -964,10 +964,11 @@ function entryHTML(e) {
         (e.calories!=null?'<div class="entry-cal-lbl">kcal</div>':'')+
       '</div>'+
       '<div class="entry-actions">'+
-        (e.breakdown ? '<button class="icon-btn" title="How was this calculated?" onclick="toggleBreakdown(\''+fid+'\')">🔍</button>' : '')+
-'<button class="icon-btn" onclick="startEdit(\''+fid+'\')">✏️</button>'+
-        '<button class="icon-btn" style="color:var(--red)" onclick="deleteEntry(\''+fid+'\')">✕</button>'+
-      '</div>'+
+      (e.breakdown ? '<button class="icon-btn" title="How was this calculated?" onclick="toggleBreakdown(\''+fid+'\')">🔍</button>' : '')+
+      (currentTab === 'history' ? '<button class="icon-btn" style="color:var(--green)" title="Log again today" onclick="logAgain(\''+fid+'\')">＋</button>' : '')+
+      '<button class="icon-btn" onclick="startEdit(\''+fid+'\')">✏️</button>'+
+      '<button class="icon-btn" style="color:var(--red)" onclick="deleteEntry(\''+fid+'\')">✕</button>'+
+    '</div>'+
     '</div>'+
 (e.breakdown ? '<div id="bd-'+fid+'" style="display:none;font-size:12px;color:var(--muted);font-family:monospace;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.6;">'+escHtml(e.breakdown)+'</div>' : '')+
 '</div>';
@@ -1199,6 +1200,21 @@ window.addFromUSDA = function(id) {
 window.toggleBreakdown = function(fid) {
   const el = document.getElementById('bd-'+fid);
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+window.logAgain = async function(fid) {
+  const entry = entries.find(e => e.firestoreId === fid);
+  if (!entry) return;
+  await addEntry({
+    name: entry.name,
+    calories: entry.calories,
+    protein: entry.protein,
+    carbs: entry.carbs,
+    fat: entry.fat,
+    breakdown: entry.breakdown || '',
+  });
+  speak(entry.name + ' logged!');
+  setTab('log');
 }
 </script>
 </body>
