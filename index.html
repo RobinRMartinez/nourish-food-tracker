@@ -816,20 +816,31 @@ window.startEdit  = function(fid) { editingId = fid; renderToday(); renderLog();
 window.cancelEdit = function()    { editingId = null; renderToday(); renderLog(); renderHistory(); }
 
 window.saveEdit = async function(fid) {
+  const nameEl = document.getElementById('en-'+fid);
+  const calEl  = document.getElementById('ec-'+fid);
+  const proEl  = document.getElementById('ep-'+fid);
+  const carbEl = document.getElementById('ecb-'+fid);
+  const fatEl  = document.getElementById('ef-'+fid);
+  const porEl  = document.getElementById('epo-'+fid);
+  if (!nameEl) { setSyncStatus('error', 'Could not find entry — try again'); return; }
+  const updates = {
+    name:     nameEl.value.trim(),
+    calories: num(calEl.value),
+    protein:  num(proEl.value),
+    carbs:    num(carbEl.value),
+    fat:      num(fatEl.value),
+    portion:  porEl.value.trim(),
+  };
   setSyncStatus('saving', 'Saving…');
   try {
-    await updateDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', fid), {
-      name:     document.getElementById('en-'+fid).value.trim(),
-      calories: num(document.getElementById('ec-'+fid).value),
-      protein:  num(document.getElementById('ep-'+fid).value),
-      carbs:    num(document.getElementById('ecb-'+fid).value),
-      fat:      num(document.getElementById('ef-'+fid).value),
-      portion:  document.getElementById('epo-'+fid).value.trim(),
-    });
+    await updateDoc(doc(db, 'users', CURRENT_USER_ID, 'entries', fid), updates);
     editingId = null;
-  } catch(e) { setSyncStatus('error', 'Save failed'); }
+    setSyncStatus('online', 'Saved ✓');
+  } catch(e) {
+    console.error('saveEdit error', e);
+    setSyncStatus('error', 'Save failed — ' + e.message);
+  }
 }
-
 // ── HEADER ──
 function updateHeader() {
   const todayE = entries.filter(e => e.date === todayStr());
