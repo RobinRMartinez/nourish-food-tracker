@@ -493,6 +493,7 @@ function speak(text) {
 // ── VOICE LOG ──
 let voiceLogListening = false;
 let voiceRecognition = null;
+let voiceResultReceived = false;
 
 window.startVoiceLog = function() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -502,6 +503,7 @@ window.startVoiceLog = function() {
   }
   if (voiceLogListening) { if (voiceRecognition) voiceRecognition.stop(); return; }
   voiceLogListening = true;
+  voiceResultReceived = false;
   const btn = document.getElementById('voice-log-btn');
   const label = document.getElementById('voice-log-label');
   const status = document.getElementById('voice-log-status');
@@ -517,6 +519,8 @@ window.startVoiceLog = function() {
   voiceRecognition.maxAlternatives = 1;
 
   voiceRecognition.onresult = async (event) => {
+    if (voiceResultReceived) return;
+    voiceResultReceived = true;
     const transcript = event.results[0][0].transcript;
     status.innerHTML = '<textarea id="heard-text" style="width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px;color:var(--text);font-size:13px;font-family:monospace;margin-top:4px;resize:none;min-height:60px;">' + transcript + '</textarea><button onclick="resubmitVoice()" style="width:100%;margin-top:6px;padding:8px;background:#1a1535;border:1px solid var(--purple);border-radius:8px;color:var(--purple);font-family:monospace;font-size:12px;cursor:pointer;">🔄 Re-look up with edits</button>';
     btn.classList.remove('listening');
@@ -579,6 +583,7 @@ async function lookupNutritionFromVoice(transcript) {
 }
 
 window.confirmVoiceLog = async function() {
+  if (voiceRecognition) voiceRecognition.stop();
   if (!pendingVoiceEntry) return;
   await addEntry({ name: pendingVoiceEntry.name, calories: pendingVoiceEntry.calories, protein: pendingVoiceEntry.protein, carbs: pendingVoiceEntry.carbs, fat: pendingVoiceEntry.fat, breakdown: pendingVoiceEntry.breakdown || '' });
   document.getElementById('voice-log-result').classList.remove('show');
